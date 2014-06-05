@@ -17,7 +17,7 @@
 
 #define RMI_DRIVER_VERSION "1.6"
 
-#define SYNAPTICS_INPUT_DEVICE_NAME "Synaptics RMI4 Touch Sensor"
+#define SYNAPTICS_INPUT_DEVICE_NAME "synaptics_rmi4"
 #define SYNAPTICS_VENDOR_ID 0x06cb
 
 #define GROUP(_attrs) { \

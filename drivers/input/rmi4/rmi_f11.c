@@ -1161,10 +1161,10 @@ static void f11_set_abs_params(struct rmi_function *fn, struct f11_data *f11)
 
 	y_min = sensor->axis_align.clip_y_low;
 	if (sensor->axis_align.clip_y_high)
-		y_max = min(device_y_max,
-			sensor->axis_align.clip_y_high);
+		y_max = min(device_y_max, sensor->axis_align.clip_y_high) -
+			sensor->axis_align.button_height;
 	else
-		y_max = device_y_max;
+		y_max = device_y_max - sensor->axis_align.button_height;
 
 	dev_dbg(&fn->dev, "Set ranges X=[%d..%d] Y=[%d..%d].",
 			x_min, x_max, y_min, y_max);

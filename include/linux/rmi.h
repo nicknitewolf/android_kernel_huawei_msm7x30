@@ -45,6 +45,8 @@ enum rmi_attn_polarity {
  * @offset_y - this value will be added to all reported Y coordinates
  * @rel_report_enabled - if set to true, the relative reporting will be
  *               automatically enabled for this sensor.
+ * @button_height - this value specifies the size of virtual keys, which
+ *               are normally found below the screen
  */
 struct rmi_f11_2d_axis_alignment {
 	u32 swap_axes;	/* boolean, but u32 is needed by debugfs API */
@@ -58,6 +60,7 @@ struct rmi_f11_2d_axis_alignment {
 	u16 offset_y;
 	u8 delta_x_threshold;
 	u8 delta_y_threshold;
+	u16 button_height;
 };
 
 /** This is used to override any hints an F11 2D sensor might have provided
