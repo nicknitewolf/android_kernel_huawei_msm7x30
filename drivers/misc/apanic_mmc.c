@@ -883,10 +883,7 @@ void apanic_mmc_partition_add(struct hd_struct *part)
 {
 	struct device *dev = part_to_dev(part);
 
-	if (!part->info || !part->info->volname[0])
-		return;
-
-	if (strncmp(part->info->volname, CONFIG_APANIC_PLABEL, BDEVNAME_SIZE)
+	if (strncmp(dev_name(dev), CONFIG_APANIC_PLABEL, BDEVNAME_SIZE)
 			== 0) {
 		if ((drv_ctx.hd == part) || (add_apanic_done != 0))
 			return;
