@@ -24,6 +24,9 @@
 #include <linux/mfd/pm8xxx/core.h>
 #include <linux/mfd/pm8xxx/pwm.h>
 #include <linux/leds-pm8xxx.h>
+#ifdef CONFIG_BATTERY_HUAWEI
+#include <linux/huawei_battery.h>
+#endif
 
 #define SSBI_REG_ADDR_DRV_KEYPAD	0x48
 #define PM8XXX_DRV_KEYPAD_BL_MASK	0xf0
@@ -614,6 +617,15 @@ static void pm8xxx_update_led(struct pm8xxx_led_data *led)
 			pr_err("could not configure PWM mode for LED:%d\n",
 								led->id);
 	}
+
+#ifdef CONFIG_BATTERY_HUAWEI
+	if (!strncmp(led->cdev.name, "flashlight", 10)) {
+		union huawei_bat_state state;
+		state.flash_current = (((led->max_current * 1000) / LED_FULL)
+			* led->cdev.brightness) / 1000;
+		huawei_bat_notify(HW_BAT_CONSUMER_CAMERA_FLASH, state);
+	}
+#endif
 }
 
 static void pm8xxx_led_set(struct led_classdev *led_cdev,

@@ -17,6 +17,9 @@
 #include "msm_fb.h"
 #include "mddihost.h"
 #include "mddihosti.h"
+#ifdef CONFIG_BATTERY_HUAWEI
+#include <linux/huawei_battery.h>
+#endif
 
 #define ENTER_SLEEP_MODE			0x1000
 #define EXIT_SLEEP_MODE				0x1100
@@ -75,6 +78,14 @@ static void mddi_nt35582_panel_set_backlight(struct msm_fb_data_type *mfd)
 		pwm_enable(bl_pwm);
 	else
 		pwm_disable(bl_pwm);
+
+#ifdef CONFIG_BATTERY_HUAWEI
+	{
+		union huawei_bat_state state;
+		state.backlight_level = mfd->bl_level;
+		huawei_bat_notify(HW_BAT_CONSUMER_LCD, state);
+	}
+#endif
 }
 
 static int __devinit nt35582_probe(struct platform_device *pdev)
