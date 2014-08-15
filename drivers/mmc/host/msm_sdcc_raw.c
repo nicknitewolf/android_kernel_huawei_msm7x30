@@ -554,8 +554,13 @@ struct raw_mmc_host {
 #define MMC_CLK_DISABLE     0
 
 /* TODO: handle multiple versions of MSM */
+#ifdef CONFIG_ARCH_MSM7X30
+#define MSM_SDC_SLOT	2
+#define MSM_SDC_BASE	0xA0500000
+#else
 #define MSM_SDC_SLOT	1
 #define MSM_SDC_BASE	0xf9824000
+#endif
 
 #define MAX_TRIES	10000
 
