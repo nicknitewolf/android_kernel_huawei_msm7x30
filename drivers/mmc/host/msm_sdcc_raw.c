@@ -554,7 +554,8 @@ struct raw_mmc_host {
 #define MMC_CLK_DISABLE     0
 
 /* TODO: handle multiple versions of MSM */
-#define MSM_SDC1_BASE	0xf9824000
+#define MSM_SDC_SLOT	1
+#define MSM_SDC_BASE	0xf9824000
 
 #define MAX_TRIES	10000
 
@@ -587,30 +588,34 @@ static int mmc_clock_enable_disable(unsigned id, unsigned enable)
 {
 	struct clk *sdc_clk = NULL;
 
-	if (id == SDC1_CLK) {
+	if (id == SDC1_CLK)
 		sdc_clk = clk_get_sys("msm_sdcc.1", "core_clk");
-
-		if (sdc_clk) {
-			if (enable)
-				clk_prepare_enable(sdc_clk);
-			else
-				clk_disable_unprepare(sdc_clk);
-		}
-		clk_put(sdc_clk);
-	} else if (id == SDC1_PCLK) {
+	else if (id == SDC1_PCLK)
 		sdc_clk = clk_get_sys("msm_sdcc.1", "iface_clk");
-
-		if (sdc_clk) {
-			if (enable)
-				clk_prepare_enable(sdc_clk);
-			else
-				clk_disable_unprepare(sdc_clk);
-		}
-		clk_put(sdc_clk);
-	}
-
+	else if (id == SDC2_CLK)
+		sdc_clk = clk_get_sys("msm_sdcc.2", "core_clk");
+	else if (id == SDC2_PCLK)
+		sdc_clk = clk_get_sys("msm_sdcc.2", "iface_clk");
+	else if (id == SDC3_CLK)
+		sdc_clk = clk_get_sys("msm_sdcc.3", "core_clk");
+	else if (id == SDC3_PCLK)
+		sdc_clk = clk_get_sys("msm_sdcc.3", "iface_clk");
+	else if (id == SDC4_CLK)
+		sdc_clk = clk_get_sys("msm_sdcc.4", "core_clk");
+	else if (id == SDC4_PCLK)
+		sdc_clk = clk_get_sys("msm_sdcc.4", "iface_clk");
 	else
 		pr_err("msm_sdcc_raw: error clock id\n");
+
+	if (sdc_clk) {
+		if (enable)
+			clk_prepare_enable(sdc_clk);
+		else
+			clk_disable_unprepare(sdc_clk);
+		clk_put(sdc_clk);
+	}
+	
+
 	return 0;
 }
 
@@ -619,24 +624,29 @@ static int mmc_clock_get_rate(unsigned id)
 	struct clk *sdc_clk = NULL;
 	int clk_rate = -1;
 
-	if (id == SDC1_CLK) {
+	if (id == SDC1_CLK)
 		sdc_clk = clk_get_sys("msm_sdcc.1", "core_clk");
-
-		if (sdc_clk)
-			clk_rate = clk_get_rate(sdc_clk);
-
-		clk_put(sdc_clk);
-	} else if (id == SDC1_PCLK) {
+	else if (id == SDC1_PCLK)
 		sdc_clk = clk_get_sys("msm_sdcc.1", "iface_clk");
-
-		if (sdc_clk)
-			clk_rate = clk_get_rate(sdc_clk);
-
-		clk_put(sdc_clk);
-	}
-
+	else if (id == SDC2_CLK)
+		sdc_clk = clk_get_sys("msm_sdcc.2", "core_clk");
+	else if (id == SDC2_PCLK)
+		sdc_clk = clk_get_sys("msm_sdcc.2", "iface_clk");
+	else if (id == SDC3_CLK)
+		sdc_clk = clk_get_sys("msm_sdcc.3", "core_clk");
+	else if (id == SDC3_PCLK)
+		sdc_clk = clk_get_sys("msm_sdcc.3", "iface_clk");
+	else if (id == SDC4_CLK)
+		sdc_clk = clk_get_sys("msm_sdcc.4", "core_clk");
+	else if (id == SDC4_PCLK)
+		sdc_clk = clk_get_sys("msm_sdcc.4", "iface_clk");
 	else
 		pr_err("msm_sdcc_raw: error clock id\n");
+
+	if (sdc_clk) {
+		clk_rate = clk_get_rate(sdc_clk);
+		clk_put(sdc_clk);
+	}
 
 	return clk_rate;
 }
@@ -645,24 +655,29 @@ static int mmc_clock_set_rate(unsigned id, unsigned rate)
 {
 	struct clk *sdc_clk = NULL;
 
-	if (id == SDC1_CLK) {
+	if (id == SDC1_CLK)
 		sdc_clk = clk_get_sys("msm_sdcc.1", "core_clk");
-
-		if (sdc_clk)
-			clk_set_rate(sdc_clk, rate);
-
-		clk_put(sdc_clk);
-	} else if (id == SDC1_PCLK) {
+	else if (id == SDC1_PCLK)
 		sdc_clk = clk_get_sys("msm_sdcc.1", "iface_clk");
-
-		if (sdc_clk)
-			clk_set_rate(sdc_clk, rate);
-
-		clk_put(sdc_clk);
-	}
-
+	else if (id == SDC2_CLK)
+		sdc_clk = clk_get_sys("msm_sdcc.2", "core_clk");
+	else if (id == SDC2_PCLK)
+		sdc_clk = clk_get_sys("msm_sdcc.2", "iface_clk");
+	else if (id == SDC3_CLK)
+		sdc_clk = clk_get_sys("msm_sdcc.3", "core_clk");
+	else if (id == SDC3_PCLK)
+		sdc_clk = clk_get_sys("msm_sdcc.3", "iface_clk");
+	else if (id == SDC4_CLK)
+		sdc_clk = clk_get_sys("msm_sdcc.4", "core_clk");
+	else if (id == SDC4_PCLK)
+		sdc_clk = clk_get_sys("msm_sdcc.4", "iface_clk");
 	else
 		pr_err("msm_sdcc_raw: error clock id\n");
+
+	if (sdc_clk) {
+		clk_set_rate(sdc_clk, rate);
+		clk_put(sdc_clk);
+	}
 
 	return 0;
 }
@@ -2281,11 +2296,19 @@ static unsigned int raw_mmc_init_and_identify_cards(struct raw_mmc_host
 	return RAW_MMC_E_SUCCESS;
 }
 
-static void mmc_controller_reset(void)
+static void mmc_controller_reset(unsigned char slot)
 {
 	struct clk *sdc_clk;
 
-	sdc_clk = clk_get_sys("msm_sdcc.1", "core_clk");
+	if (slot == 1)
+		sdc_clk = clk_get_sys("msm_sdcc.1", "core_clk");
+	else if (slot == 2)
+		sdc_clk = clk_get_sys("msm_sdcc.2", "core_clk");
+	else if (slot == 3)
+		sdc_clk = clk_get_sys("msm_sdcc.3", "core_clk");
+	else if (slot == 4)
+		sdc_clk = clk_get_sys("msm_sdcc.4", "core_clk");
+
 	if (sdc_clk) {
 		/*
 		 * FIXME: the clk reset will trigger WARNING and writing
@@ -2314,7 +2337,7 @@ static unsigned int raw_mmc_main(unsigned char slot, unsigned int base)
 
 	/* Initialize necessary data structure and enable/set clock and power */
 	pr_debug(" Initializing MMC host data structure and clock!\n");
-	mmc_controller_reset();
+	mmc_controller_reset(slot);
 	mmc_ret = raw_mmc_init(&mmc_host);
 	if (mmc_ret != RAW_MMC_E_SUCCESS) {
 		pr_crit("MMC Boot: Error Initializing MMC Card!!!\n");
@@ -2391,7 +2414,7 @@ static int raw_mmc_probe_emmc(struct hd_struct *rhd)
 {
 	pr_debug("start sec is: %ul\n", (unsigned int) rhd->start_sect);
 	pr_debug("number of secs are: %ul\n", (unsigned int) rhd->nr_sects);
-	return raw_mmc_main(1, MSM_SDC1_BASE);
+	return raw_mmc_main(MSM_SDC_SLOT, MSM_SDC_BASE);
 }
 
 static int raw_mmc_write_mmc(char *buf, sector_t start_sect,
@@ -2442,7 +2465,7 @@ static struct raw_mmc_panic_ops msm_sdcc_raw_panic_ops = {
 
 static int  __init msm_init_apanic(void)
 {
-	raw_mmc_mci_base = ioremap(MSM_SDC1_BASE, PAGE_SIZE);
+	raw_mmc_mci_base = ioremap(MSM_SDC_BASE, PAGE_SIZE);
 	if (!raw_mmc_mci_base) {
 		pr_crit("raw mmc mci base register remap failed, no kernel "
 				"log will be saved if panic happens under "
