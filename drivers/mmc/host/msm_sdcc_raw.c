@@ -2323,6 +2323,7 @@ static void mmc_controller_reset(unsigned char slot)
 		clk_reset(sdc_clk, 1);
 		clk_reset(sdc_clk, 0);
 		*/
+		clk_put(sdc_clk);
 	}
 }
 
