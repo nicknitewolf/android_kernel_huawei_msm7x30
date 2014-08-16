@@ -27,7 +27,6 @@
 #include <linux/module.h>
 
 #include <asm/setup.h>
-#include <mach/mmi_watchdog.h>
 
 /* from kernel/printk.c */
 int log_buf_copy(char *dest, int idx, int len);
@@ -657,7 +656,6 @@ static void apanic_mmc_logbuf_dump(void)
 	if (ctx->annotation)
 		printk(KERN_EMERG "%s\n", ctx->annotation);
 
-	touch_hw_watchdog();
 	/*
 	 * Write out the console
 	 */
@@ -691,8 +689,6 @@ static void apanic_mmc_logbuf_dump(void)
 	ctx->written += apanic_write_console_mmc(ctx->buf_offset);
 	app_threads_len = ctx->written - app_threads_offset;
 
-	touch_hw_watchdog();
-
 	log_buf_clear();
 	threads_offset = ALIGN(ctx->written, 512);
 	ctx->buf_offset = threads_offset;
@@ -703,8 +699,6 @@ static void apanic_mmc_logbuf_dump(void)
 	ctx->buf_offset = ALIGN(ctx->written, 512);
 	ctx->written += apanic_write_console_mmc(ctx->buf_offset);
 	threads_len = ctx->written - threads_offset + 512;
-
-	touch_hw_watchdog();
 
 	for (con = console_drivers; con; con = con->next)
 		con->flags |= CON_ENABLED;
@@ -807,13 +801,6 @@ static int apanic_mmc(struct notifier_block *this, unsigned long event,
 	if (in_panic)
 		return NOTIFY_DONE;
 	in_panic = 1;
-
-	/*
-	 * HW watchdog may not enabled yet (e.g. panic in
-	 * suspend/resume). Enable HW watchdog to avoid hang
-	 * in raw mmc operation.
-	 */
-	panic_watchdog_set(10);
 
 #ifdef CONFIG_PREEMPT
 	/* Ensure that cond_resched() won't try to preempt anybody */
