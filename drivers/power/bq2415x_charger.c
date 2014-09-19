@@ -895,11 +895,15 @@ static void bq2415x_compare_values(struct bq2415x_device *bq)
 		reset = true;
 		goto end;
 	}
-	value = bq2415x_get_charge_current(bq);
-	if (value != bq->init_data.charge_current) {
-		reset = true;
-		goto end;
+
+	if (bq->init_data.resistor_sense > 0) {
+		value = bq2415x_get_charge_current(bq);
+		if (value != bq->init_data.charge_current) {
+			reset = true;
+			goto end;
+		}
 	}
+
 	value = bq2415x_get_stat_pin_enable(bq);
 	if (value != bq->init_data.stat_pin_enable) {
 		reset = true;
