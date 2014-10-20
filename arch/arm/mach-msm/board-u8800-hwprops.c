@@ -116,6 +116,10 @@ static void hwprops_get_rpc_wlanmac(void)
 
 static int __init hwprops_fixup_serialno(void)
 {
+	/* Some bootloaders provide it.*/
+	if (strstr(saved_command_line, "androidboot.serialno") != NULL)
+		return 0;
+
 	/* Add serialno to the command line. */
 	strlcat(saved_command_line, " androidboot.serialno=",
 		COMMAND_LINE_SIZE);
