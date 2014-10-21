@@ -2156,6 +2156,8 @@ static struct resource msm_fb_resources[] = {
 
 static int msm_fb_detect_panel(const char *name)
 {
+	if (!strcmp(name, "mddi_nt35560_fwvga"))
+		return 0;
 	return -ENODEV;
 }
 
@@ -2317,6 +2319,11 @@ static struct platform_device qcedev_device = {
 	},
 };
 #endif
+
+static struct platform_device mddi_nt35560_fwvga_device = {
+	.name	= "mddi_nt35560_fwvga",
+	.id	= 0,
+};
 
 static int display_power(int on)
 {
@@ -2972,6 +2979,7 @@ static struct platform_device *devices[] __initdata = {
 #endif
 	&msm_fb_device,
 	&msm_migrate_pages_device,
+	&mddi_nt35560_fwvga_device,
 #ifdef CONFIG_MSM_ROTATOR
 	&msm_rotator_device,
 #endif
