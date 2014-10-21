@@ -84,9 +84,9 @@
 
 
 #ifdef CONFIG_FB_MSM_TRIPLE_BUFFER
-#define MSM_FB_PRIM_BUF_SIZE	(854 * 480 * 4 * 3) /* 4bpp * 3 Pages */
+#define MSM_FB_PRIM_BUF_SIZE	(roundup(854 * 480 * 4, 4096) * 3) /* 4bpp * 3 Pages */
 #else
-#define MSM_FB_PRIM_BUF_SIZE	(854 * 480 * 4 * 2) /* 4bpp * 2 Pages */
+#define MSM_FB_PRIM_BUF_SIZE	(roundup(854 * 480 * 4, 4096) * 2) /* 4bpp * 2 Pages */
 #endif
 
 #define MSM_FB_EXT_BUF_SIZE	0
