@@ -80,7 +80,6 @@
 
 #include <linux/i2c/atmel_mxt_ts.h>
 #include <linux/rmi.h>
-#include <linux/input/lsm303dlh.h>
 #include <sound/tpa2028d1.h>
 #include <linux/huawei_battery.h>
 
@@ -1868,84 +1867,6 @@ static struct platform_device android_usb_device = {
 };
 #endif
 
-#ifdef CONFIG_INPUT_LSM303DLH
-static struct regulator *lsm303dlh_reg = NULL;
-
-static int lsm303dlh_init(void)
-{
-	int ret = 0;
-
-	if (lsm303dlh_reg)
-		return 0;
-
-	lsm303dlh_reg = regulator_get(NULL, "gp4");
-	if (IS_ERR(lsm303dlh_reg)) {
-		ret = PTR_ERR(lsm303dlh_reg);
-		pr_err("%s: Failed to request regulator. Code: %d.",
-			__func__, ret);
-		return ret;
-	}
-
-	ret = regulator_set_voltage(lsm303dlh_reg, 2500000, 3300000);
-	if (ret) {
-		ret = PTR_ERR(lsm303dlh_reg);
-		pr_err("%s: Failed to set regulator voltage. Code: %d.",
-			__func__, ret);
-		return ret;
-	}
-
-	return ret;
-}
-
-static void lsm303dlh_exit(void)
-{
-	if (lsm303dlh_reg) {
-		regulator_put(lsm303dlh_reg);
-		lsm303dlh_reg = NULL;
-	}
-}
-
-static int lsm303dlh_power_on(void)
-{
-	return regulator_enable(lsm303dlh_reg);
-}
-
-static int lsm303dlh_power_off(void)
-{
-	return regulator_disable(lsm303dlh_reg);
-}
-
-static struct lsm303dlh_acc_platform_data lsm303dlh_acc_pdata = {
-	.min_interval = 1,
-	.g_range = LSM303DLH_G_2G,
-	.axis_map_x = 1,
-	.axis_map_y = 0,
-	.axis_map_z = 2,
-	.negate_x = 0,
-	.negate_y = 1,
-	.negate_z = 0,
-	.init = lsm303dlh_init,
-	.exit = lsm303dlh_exit,
-	.power_on = lsm303dlh_power_on,
-	.power_off = lsm303dlh_power_off,
-};
-
-static struct lsm303dlh_mag_platform_data lsm303dlh_mag_pdata = {
-	.min_interval = 14,
-	.h_range = LSM303DLH_H_5_6G,
-	.axis_map_x = 1,
-	.axis_map_y = 0,
-	.axis_map_z = 2,
-	.negate_x = 0,
-	.negate_y = 1,
-	.negate_z = 0,
-	.init = lsm303dlh_init,
-	.exit = lsm303dlh_exit,
-	.power_on = lsm303dlh_power_on,
-	.power_off = lsm303dlh_power_off,
-};
-#endif
-
 #ifdef CONFIG_SND_SOC_TPA2028D1
 static struct tpa2028d1_callbacks *tpa2028d1_cb = NULL;
 
@@ -1978,16 +1899,6 @@ static struct tpa2028d1_platform_data tpa2028d1_pdata = {
 #endif
 
 static struct i2c_board_info msm_i2c_board_info[] = {
-	#ifdef CONFIG_INPUT_LSM303DLH
-	{
-		I2C_BOARD_INFO("lsm303dlh_acc", 0x32 >> 1),
-		.platform_data = &lsm303dlh_acc_pdata,
-	},
-	{
-		I2C_BOARD_INFO("lsm303dlh_mag", 0x3C >> 1),
-		.platform_data = &lsm303dlh_mag_pdata,
-	},
-	#endif
 	#ifdef CONFIG_SND_SOC_TPA2028D1
 	{
 		I2C_BOARD_INFO("tpa2028d1", 0xB0 >> 1),
