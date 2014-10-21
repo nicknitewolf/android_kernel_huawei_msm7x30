@@ -3291,18 +3291,18 @@ static struct msm_spm_platform_data msm_spm_data __initdata = {
 
 #define MAX_LEN		100
 
-static ssize_t u8800_virtual_keys_register(struct kobject *kobj,
+static ssize_t u8860_virtual_keys_register(struct kobject *kobj,
 	struct kobj_attribute *attr, char *buf)
 {
 	char *virtual_keys =
-		__stringify(EV_KEY) ":" __stringify(KEY_BACK)
-			":67:862:60:50\n"
 		__stringify(EV_KEY) ":" __stringify(KEY_MENU)
-			":199:862:60:50\n"
+			":50:930:112:80\n"
 		__stringify(EV_KEY) ":" __stringify(KEY_HOMEPAGE)
-			":304:862:60:50\n"
+			":180:930:112:80\n"
+		__stringify(EV_KEY) ":" __stringify(KEY_BACK)
+			":300:930:112:80\n"
 		__stringify(EV_KEY) ":" __stringify(KEY_SEARCH)
-			":413:862:60:50\n";
+			":430:930:112:80\n";
 
 	return snprintf(buf, strnlen(virtual_keys, MAX_LEN) + 1 , "%s",
 		virtual_keys);
@@ -3313,7 +3313,7 @@ static struct kobj_attribute synaptics_ts_virtual_keys_attr = {
 		.name = "virtualkeys.synaptics_rmi4",
 		.mode = S_IRUGO,
 	},
-	.show = &u8800_virtual_keys_register,
+	.show = &u8860_virtual_keys_register,
 };
 
 static struct attribute *virtual_key_properties_attrs[] = {
@@ -3341,7 +3341,7 @@ static int virtual_key_setup(void)
 		ret = sysfs_create_group(virtual_key_properties_kobj,
 			&virtual_key_properties_attr_group);
 	if (!virtual_key_properties_kobj || ret)
-		pr_err("%s: failed to create u8800 board_properties\n", __func__);
+		pr_err("%s: failed to create u8860 board_properties\n", __func__);
 
 	return ret;
 }
