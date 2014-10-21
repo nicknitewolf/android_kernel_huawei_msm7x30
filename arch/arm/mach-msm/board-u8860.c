@@ -80,7 +80,6 @@
 
 #include <linux/i2c/atmel_mxt_ts.h>
 #include <linux/rmi.h>
-#include <linux/input/aps-12d.h>
 #include <linux/input/lsm303dlh.h>
 #include <sound/tpa2028d1.h>
 #include <linux/huawei_battery.h>
@@ -1869,16 +1868,6 @@ static struct platform_device android_usb_device = {
 };
 #endif
 
-#ifdef CONFIG_APS_12D
-static struct aps_12d_platform_data aps_12d_pdata = {
-	.range = APS_12D_RANGE_0P24_TO_1000,
-	.irdr_current = APS_12D_IRDR_50,
-	.mod_freq = APS_12D_MOD_FREQ_DC,
-	.allow_reconfig = true,
-	.vcc_regulator = "gp4"
-};
-#endif
-
 #ifdef CONFIG_INPUT_LSM303DLH
 static struct regulator *lsm303dlh_reg = NULL;
 
@@ -1989,12 +1978,6 @@ static struct tpa2028d1_platform_data tpa2028d1_pdata = {
 #endif
 
 static struct i2c_board_info msm_i2c_board_info[] = {
-	#ifdef CONFIG_APS_12D
-	{
-		I2C_BOARD_INFO("aps-12d", 0x88 >> 1),
-		.platform_data = &aps_12d_pdata,
-	},
-	#endif
 	#ifdef CONFIG_INPUT_LSM303DLH
 	{
 		I2C_BOARD_INFO("lsm303dlh_acc", 0x32 >> 1),
