@@ -235,8 +235,8 @@ static struct platform_device msm_proccomm_regulator_dev = {
 #endif
 
 static const unsigned int pm8xxx_keymap[] = {
-	KEY(0, 0, KEY_VOLUMEUP),
-	KEY(0, 1, KEY_VOLUMEDOWN),
+	KEY(0, 0, KEY_VOLUMEDOWN),
+	KEY(0, 1, KEY_VOLUMEUP),
 };
 
 static struct matrix_keymap_data pm8xxx_keymap_data = {
