@@ -119,6 +119,7 @@ static struct platform_device ion_dev;
 
 #define PMIC_GPIO_SD_DET	20 /* PMIC GPIO Number 21 */
 #define PMIC_GPIO_FLASH_PWM	23 /* PMIC GPIO Number 24 */
+#define PMIC_GPIO_BUTTON_PWM	24 /* PMIC GPIO Number 25 */
 #define PMIC_GPIO_SDC4_PWR_EN_N	35 /* PMIC GPIO Number 36 */
 
 #define DDR2_BANK_BASE 0X40000000
@@ -147,6 +148,18 @@ static int pm8058_gpios_init(void)
 		},
 	};
 
+	struct pm8xxx_gpio_init_info button_pwm = {
+		PM8058_GPIO_PM_TO_SYS(PMIC_GPIO_BUTTON_PWM),
+		{
+			.direction	= PM_GPIO_DIR_OUT,
+			.output_buffer	= PM_GPIO_OUT_BUF_CMOS,
+			.output_value	= 0,
+			.pull		= PM_GPIO_PULL_NO,
+			.vin_sel	= PM8058_GPIO_VIN_S3,
+			.out_strength	= PM_GPIO_STRENGTH_HIGH,
+			.function	= PM_GPIO_FUNC_2,
+		}
+	};
 
 	struct pm8xxx_gpio_init_info flash_pwm = {
 		PM8058_GPIO_PM_TO_SYS(PMIC_GPIO_FLASH_PWM),
@@ -184,6 +197,11 @@ static int pm8058_gpios_init(void)
 		return rc;
 	}
 
+	rc = pm8xxx_gpio_config(button_pwm.gpio, &button_pwm.config);
+	if (rc) {
+		pr_err("%s PMIC_GPIO_BUTTON_PWM config failed\n", __func__);
+		return rc;
+	}
 
 	/* SCD4 gpio_36 */
 	rc = pm8xxx_gpio_config(sdc4_pwr_en.gpio, &sdc4_pwr_en.config);
@@ -305,7 +323,7 @@ static struct pm8xxx_led_config pm8xxx_led_configs[] = {
 		.id = PM8XXX_ID_LED_KB_LIGHT,
 		.mode = PM8XXX_LED_MODE_PWM1,
 		.max_current = 150, /* 10 <= I <= 150 */
-		.pwm_channel = 3,
+		.pwm_channel = 1,
 		.pwm_period_us = PM8XXX_LED_PWM_PERIOD,
 	},
 	[1] = {
