@@ -78,7 +78,6 @@
 #include "board-u8860.h"
 #include "pm.h"
 
-#include <linux/i2c/atmel_mxt_ts.h>
 #include <linux/rmi.h>
 #include <sound/tpa2028d1.h>
 #include <linux/huawei_battery.h>
@@ -3593,14 +3592,6 @@ static ssize_t u8800_virtual_keys_register(struct kobject *kobj,
 		virtual_keys);
 }
 
-static struct kobj_attribute atmel_mxt_ts_virtual_keys_attr = {
-	.attr = {
-		.name = "virtualkeys.atmel_mxt_ts",
-		.mode = S_IRUGO,
-	},
-	.show = &u8800_virtual_keys_register,
-};
-
 static struct kobj_attribute synaptics_ts_virtual_keys_attr = {
 	.attr = {
 		.name = "virtualkeys.synaptics_rmi4",
@@ -3610,7 +3601,6 @@ static struct kobj_attribute synaptics_ts_virtual_keys_attr = {
 };
 
 static struct attribute *virtual_key_properties_attrs[] = {
-	&atmel_mxt_ts_virtual_keys_attr.attr,
 	&synaptics_ts_virtual_keys_attr.attr,
 	NULL
 };
@@ -3639,84 +3629,6 @@ static int virtual_key_setup(void)
 
 	return ret;
 }
-
-#ifdef CONFIG_TOUCHSCREEN_ATMEL_MXT
-static const u8 mxt224_config_data[] = {
-	/* T6 Object */
-	 0, 0, 0, 0, 0, 0,
-	/* T38 Object */
-	 0, 0, 0, 0, 0, 0, 0, 0,
-	/* T7 Object */
-	 50, 14, 50,
-	/* T8 Object */
-	 10, 0, 5, 10, 0, 0, 5, 40,
-	/* T9 Object */
-	 139, 0, 0, 17, 12, 0, 17, 50, 2, 1,
-	 0, 3, 3, 0, 10, 10, 10, 10, 113, 3,
-	 223, 1, 35, 33, 52, 51, 148, 10, 139, 30,
-	 0,
-	/* T15 Object */
-	 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	 0,
-	/* T18 Object */
-	 0, 0,
-	/* T19 Object */
-	 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	 0, 0, 0, 0, 0, 0,
-	/* T20 Object */
-	 7, 0, 0, 0, 0, 0, 0, 80, 40, 4,
-	 35, 10,
-	/* T22 Object */
-	 5, 0, 0, 25, 0, 231, 255, 4, 20, 0,
-	 0, 4, 14, 26, 255, 255, 4,
-	/* T23 Object */
-	 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	 0, 0, 0, 0, 0,
-	/* T24 Object */
-	 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	/* T25 Object */
-	 3, 0, 200, 50, 64, 31, 0, 0, 0, 0,
-	 0, 0, 0, 0,
-	/* T27 Object */
-	 0, 0, 0, 0, 0, 0, 0,
-	/* T28 Object */
-	 0, 0, 1, 16, 32, 10,
-};
-
-static struct mxt_config_info mxt_config_array[] = {
-	{
-		.config		= mxt224_config_data,
-		.config_length	= ARRAY_SIZE(mxt224_config_data),
-		.family_id	= 0x80,
-		.variant_id	= 0x01,
-		.version	= 0x16,
-		.build		= 0xAB,
-	},
-};
-
-static struct mxt_platform_data mxt_platform_data = {
-	.config_array		= mxt_config_array,
-	.config_array_size	= ARRAY_SIZE(mxt_config_array),
-	.panel_minx		= 0,
-	.panel_maxx		= 480,
-	.panel_miny		= 0,
-	.panel_maxy		= 882,
-	.disp_minx		= 0,
-	.disp_maxx		= 480,
-	.disp_miny		= 0,
-	.disp_maxy		= 800,
-	.irqflags		= IRQF_TRIGGER_LOW | IRQF_ONESHOT,
-	.reset_gpio		= TS_GPIO_RESET,
-	.irq_gpio		= TS_GPIO_IRQ,
-};
-
-static struct i2c_board_info atmel_mxt_ts = {
-	I2C_BOARD_INFO("atmel_mxt_ts", 0x4a),
-	.platform_data = &mxt_platform_data,
-	.irq = MSM_GPIO_TO_INT(TS_GPIO_IRQ),
-};
-#endif
 
 #ifdef CONFIG_RMI4_I2C
 static int synaptics_touchpad_gpio_setup(void *gpio_data, bool configure)
@@ -3838,10 +3750,6 @@ static int __init i2c_touch_init(void)
 		I2C_SMBUS_BYTE_DATA, &data);
 
 	if (!ret) {
-		pr_debug("%s: Found Atmel mXT224\n", __func__);
-#ifdef CONFIG_TOUCHSCREEN_ATMEL_MXT
-		i2c_new_device(touch_i2c_adapter, &atmel_mxt_ts);
-#endif
 	} else {
 		pr_debug("%s: Found Synaptics TM-1564\n", __func__);
 #ifdef CONFIG_RMI4_I2C
