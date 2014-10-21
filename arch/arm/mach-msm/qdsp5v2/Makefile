@@ -11,7 +11,11 @@ obj-$(CONFIG_MARIMBA_CODEC) += snddev_data_marimba_u8800.o
 else
 obj-$(CONFIG_MARIMBA_CODEC) += snddev_data_marimba.o
 endif
+ifeq ($(CONFIG_MACH_HUAWEI_U8860),y)
+obj-$(CONFIG_TIMPANI_CODEC) += snddev_data_timpani_u8860.o
+else
 obj-$(CONFIG_TIMPANI_CODEC) += snddev_data_timpani.o
+endif
 
 obj-y += audio_pcm.o audpp.o audio_mp3.o audio_wma.o audio_aac.o audio_amrnb.o
 obj-y += audio_amrwb.o audio_wmapro.o audio_adpcm.o audio_evrc.o audio_qcelp.o
