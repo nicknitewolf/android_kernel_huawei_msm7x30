@@ -327,7 +327,7 @@ err:
 
 late_initcall(hwprops_init);
 
-static int hwprops_get_wlanmac(uint8_t *wlanmac)
+int hwprops_get_wlanmac(uint8_t *wlanmac)
 {
 	if (!data)
 		return -EINVAL;
