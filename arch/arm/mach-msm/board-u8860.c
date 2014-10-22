@@ -1044,34 +1044,6 @@ static struct msm_gpio timpani_reset_gpio_cfg[] = {
 { GPIO_CFG(TIMPANI_RESET_GPIO, 0, GPIO_CFG_OUTPUT,
 	GPIO_CFG_NO_PULL, GPIO_CFG_2MA), "timpani_reset"} };
 
-static u8 read_bahama_ver(void)
-{
-	int rc;
-	struct marimba config = { .mod_id = SLAVE_ID_BAHAMA };
-	u8 bahama_version;
-
-	rc = marimba_read_bit_mask(&config, 0x00,  &bahama_version, 1, 0x1F);
-	if (rc < 0) {
-		printk(KERN_ERR "%s: version read failed: %d\n",
-			__func__, rc);
-			return rc;
-	} else {
-		printk(KERN_INFO "%s: version read got: 0x%x\n",
-			__func__, bahama_version);
-	}
-
-	switch (bahama_version) {
-	case 0x08: /* varient of bahama v1 */
-	case 0x10:
-	case 0x00:
-		return VER_1_0;
-	case 0x09: /* variant of bahama v2 */
-		return VER_2_0;
-	default:
-		return VER_UNSUPPORTED;
-	}
-}
-
 static int config_timpani_reset(void)
 {
 	int rc;
@@ -1145,24 +1117,6 @@ static void msm_timpani_shutdown_power(void)
 	msm_gpios_free(timpani_reset_gpio_cfg,
 				   ARRAY_SIZE(timpani_reset_gpio_cfg));
 };
-
-static int bahama_present(void)
-{
-	int id;
-	switch (id = adie_get_detected_connectivity_type()) {
-	case BAHAMA_ID:
-		return 1;
-
-	case MARIMBA_ID:
-		return 0;
-
-	case TIMPANI_ID:
-	default:
-		printk(KERN_ERR "%s: unexpected adie connectivity type: %d\n",
-			__func__, id);
-	return -ENODEV;
-	}
-}
 
 /* Slave id address for FM/CDC/QMEMBIST
  * Values can be programmed using Marimba slave id 0
@@ -2178,7 +2132,12 @@ static void __init msm_fb_add_devices(void)
 #endif
 }
 
-#ifdef CONFIG_MARIMBA_CORE
+#ifdef CONFIG_MSM_BT_POWER
+#define GPIO_BT_WAKE_MSM	142
+#define GPIO_MSM_WAKE_BT	143
+#define GPIO_BT_SHUTDOWN_N	161
+#define GPIO_BT_RESET_N		163
+
 static struct platform_device msm_bt_power_device;
 
 enum {
@@ -2196,7 +2155,11 @@ static struct msm_gpio bt_config_power_on[] = {
 	{ GPIO_CFG(136, 1, GPIO_CFG_INPUT,  GPIO_CFG_NO_PULL,   GPIO_CFG_2MA),
 		"UART1DM_Rx" },
 	{ GPIO_CFG(137, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL,   GPIO_CFG_2MA),
-		"UART1DM_Tx" }
+		"UART1DM_Tx" },
+	{ GPIO_CFG(GPIO_BT_WAKE_MSM, 0, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
+		"BT_WAKE_MSM" },
+	{ GPIO_CFG(GPIO_MSM_WAKE_BT, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
+		"MSM_WAKE_BT" }
 };
 
 static struct msm_gpio bt_config_power_off[] = {
@@ -2207,395 +2170,91 @@ static struct msm_gpio bt_config_power_off[] = {
 	{ GPIO_CFG(136, 0, GPIO_CFG_INPUT,  GPIO_CFG_PULL_DOWN,   GPIO_CFG_2MA),
 		"UART1DM_Rx" },
 	{ GPIO_CFG(137, 0, GPIO_CFG_INPUT,  GPIO_CFG_PULL_DOWN,   GPIO_CFG_2MA),
-		"UART1DM_Tx" }
+		"UART1DM_Tx" },
+	{ GPIO_CFG(GPIO_BT_WAKE_MSM, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
+		"BT_WAKE_MSM" },
+	{ GPIO_CFG(GPIO_MSM_WAKE_BT, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),
+		"MSM_WAKE_BT" }
 };
 
-static u8 bahama_version;
+static struct msm_gpio bt_config_power_control[] = {
+	{ GPIO_CFG(GPIO_BT_SHUTDOWN_N, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
+		"BT_REG_ON" },
+	{ GPIO_CFG(GPIO_BT_RESET_N, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
+		"BT_PWR_ON" }
+};
 
-static struct regulator_bulk_data regs_bt_marimba[] = {
+static struct regulator_bulk_data regs_bt[] = {
 	{ .supply = "smps3", .min_uV = 1800000, .max_uV = 1800000 },
-	{ .supply = "smps2", .min_uV = 1300000, .max_uV = 1300000 },
-	{ .supply = "ldo24", .min_uV = 1200000, .max_uV = 1200000 },
-	{ .supply = "ldo13", .min_uV = 2900000, .max_uV = 3050000 },
 };
 
-static struct regulator_bulk_data regs_bt_bahama_v1[] = {
-	{ .supply = "smps3", .min_uV = 1800000, .max_uV = 1800000 },
-	{ .supply = "ldo7",  .min_uV = 1800000, .max_uV = 1800000 },
-	{ .supply = "smps2", .min_uV = 1300000, .max_uV = 1300000 },
-	{ .supply = "ldo13", .min_uV = 2900000, .max_uV = 3050000 },
-};
-
-static struct regulator_bulk_data regs_bt_bahama_v2[] = {
-	{ .supply = "smps3", .min_uV = 1800000, .max_uV = 1800000 },
-	{ .supply = "ldo7",  .min_uV = 1800000, .max_uV = 1800000 },
-	{ .supply = "ldo13", .min_uV = 2900000, .max_uV = 3050000 },
-};
-
-static struct regulator_bulk_data *regs_bt;
-static int regs_bt_count;
-
-static int marimba_bt(int on)
-{
-	int rc;
-	int i;
-	struct marimba config = { .mod_id = MARIMBA_SLAVE_ID_MARIMBA };
-
-	struct marimba_config_register {
-		u8 reg;
-		u8 value;
-		u8 mask;
-	};
-
-	struct marimba_variant_register {
-		const size_t size;
-		const struct marimba_config_register *set;
-	};
-
-	const struct marimba_config_register *p;
-
-	u8 version;
-
-	const struct marimba_config_register v10_bt_on[] = {
-		{ 0xE5, 0x0B, 0x0F },
-		{ 0x05, 0x02, 0x07 },
-		{ 0x06, 0x88, 0xFF },
-		{ 0xE7, 0x21, 0x21 },
-		{ 0xE3, 0x38, 0xFF },
-		{ 0xE4, 0x06, 0xFF },
-	};
-
-	const struct marimba_config_register v10_bt_off[] = {
-		{ 0xE5, 0x0B, 0x0F },
-		{ 0x05, 0x08, 0x0F },
-		{ 0x06, 0x88, 0xFF },
-		{ 0xE7, 0x00, 0x21 },
-		{ 0xE3, 0x00, 0xFF },
-		{ 0xE4, 0x00, 0xFF },
-	};
-
-	const struct marimba_config_register v201_bt_on[] = {
-		{ 0x05, 0x08, 0x07 },
-		{ 0x06, 0x88, 0xFF },
-		{ 0xE7, 0x21, 0x21 },
-		{ 0xE3, 0x38, 0xFF },
-		{ 0xE4, 0x06, 0xFF },
-	};
-
-	const struct marimba_config_register v201_bt_off[] = {
-		{ 0x05, 0x08, 0x07 },
-		{ 0x06, 0x88, 0xFF },
-		{ 0xE7, 0x00, 0x21 },
-		{ 0xE3, 0x00, 0xFF },
-		{ 0xE4, 0x00, 0xFF },
-	};
-
-	const struct marimba_config_register v210_bt_on[] = {
-		{ 0xE9, 0x01, 0x01 },
-		{ 0x06, 0x88, 0xFF },
-		{ 0xE7, 0x21, 0x21 },
-		{ 0xE3, 0x38, 0xFF },
-		{ 0xE4, 0x06, 0xFF },
-	};
-
-	const struct marimba_config_register v210_bt_off[] = {
-		{ 0x06, 0x88, 0xFF },
-		{ 0xE7, 0x00, 0x21 },
-		{ 0xE9, 0x00, 0x01 },
-		{ 0xE3, 0x00, 0xFF },
-		{ 0xE4, 0x00, 0xFF },
-	};
-
-	const struct marimba_variant_register bt_marimba[2][4] = {
-		{
-			{ ARRAY_SIZE(v10_bt_off), v10_bt_off },
-			{ 0, NULL },
-			{ ARRAY_SIZE(v201_bt_off), v201_bt_off },
-			{ ARRAY_SIZE(v210_bt_off), v210_bt_off }
-		},
-		{
-			{ ARRAY_SIZE(v10_bt_on), v10_bt_on },
-			{ 0, NULL },
-			{ ARRAY_SIZE(v201_bt_on), v201_bt_on },
-			{ ARRAY_SIZE(v210_bt_on), v210_bt_on }
-		}
-	};
-
-	on = on ? 1 : 0;
-
-	rc = marimba_read_bit_mask(&config, 0x11,  &version, 1, 0x1F);
-	if (rc < 0) {
-		printk(KERN_ERR
-			"%s: version read failed: %d\n",
-			__func__, rc);
-		return rc;
-	}
-
-	if ((version >= ARRAY_SIZE(bt_marimba[on])) ||
-	    (bt_marimba[on][version].size == 0)) {
-		printk(KERN_ERR
-			"%s: unsupported version\n",
-			__func__);
-		return -EIO;
-	}
-
-	p = bt_marimba[on][version].set;
-
-	printk(KERN_INFO "%s: found version %d\n", __func__, version);
-
-	for (i = 0; i < bt_marimba[on][version].size; i++) {
-		u8 value = (p+i)->value;
-		rc = marimba_write_bit_mask(&config,
-			(p+i)->reg,
-			&value,
-			sizeof((p+i)->value),
-			(p+i)->mask);
-		if (rc < 0) {
-			printk(KERN_ERR
-				"%s: reg %d write failed: %d\n",
-				__func__, (p+i)->reg, rc);
-			return rc;
-		}
-		printk(KERN_INFO "%s: reg 0x%02x value 0x%02x mask 0x%02x\n",
-				__func__, (p+i)->reg,
-				value, (p+i)->mask);
-	}
-	return 0;
-}
-
-static int bahama_bt(int on)
-{
-	int rc;
-	int i;
-	struct marimba config = { .mod_id = SLAVE_ID_BAHAMA };
-
-	struct bahama_variant_register {
-		const size_t size;
-		const struct bahama_config_register *set;
-	};
-
-	const struct bahama_config_register *p;
-
-
-	const struct bahama_config_register v10_bt_on[] = {
-		{ 0xE9, 0x00, 0xFF },
-		{ 0xF4, 0x80, 0xFF },
-		{ 0xF0, 0x06, 0xFF },
-		{ 0xE4, 0x00, 0xFF },
-		{ 0xE5, 0x00, 0x0F },
-#ifdef CONFIG_WLAN
-		{ 0xE6, 0x38, 0x7F },
-		{ 0xE7, 0x06, 0xFF },
-#endif
-		{ 0x11, 0x13, 0xFF },
-		{ 0xE9, 0x21, 0xFF },
-		{ 0x01, 0x0C, 0x1F },
-		{ 0x01, 0x08, 0x1F },
-	};
-
-	const struct bahama_config_register v20_bt_on_fm_off[] = {
-		{ 0x11, 0x0C, 0xFF },
-		{ 0x13, 0x01, 0xFF },
-		{ 0xF4, 0x80, 0xFF },
-		{ 0xF0, 0x00, 0xFF },
-		{ 0xE9, 0x00, 0xFF },
-#ifdef CONFIG_WLAN
-		{ 0x81, 0x00, 0xFF },
-		{ 0x82, 0x00, 0xFF },
-		{ 0xE6, 0x38, 0x7F },
-		{ 0xE7, 0x06, 0xFF },
-#endif
-		{ 0xE9, 0x21, 0xFF }
-	};
-
-	const struct bahama_config_register v20_bt_on_fm_on[] = {
-		{ 0x11, 0x0C, 0xFF },
-		{ 0x13, 0x01, 0xFF },
-		{ 0xF4, 0x86, 0xFF },
-		{ 0xF0, 0x06, 0xFF },
-		{ 0xE9, 0x00, 0xFF },
-#ifdef CONFIG_WLAN
-		{ 0x81, 0x00, 0xFF },
-		{ 0x82, 0x00, 0xFF },
-		{ 0xE6, 0x38, 0x7F },
-		{ 0xE7, 0x06, 0xFF },
-#endif
-		{ 0xE9, 0x21, 0xFF }
-	};
-
-	const struct bahama_config_register v10_bt_off[] = {
-		{ 0xE9, 0x00, 0xFF },
-	};
-
-	const struct bahama_config_register v20_bt_off_fm_off[] = {
-		{ 0xF4, 0x84, 0xFF },
-		{ 0xF0, 0x04, 0xFF },
-		{ 0xE9, 0x00, 0xFF }
-	};
-
-	const struct bahama_config_register v20_bt_off_fm_on[] = {
-		{ 0xF4, 0x86, 0xFF },
-		{ 0xF0, 0x06, 0xFF },
-		{ 0xE9, 0x00, 0xFF }
-	};
-
-	const struct bahama_variant_register bt_bahama[2][3] = {
-		{
-			{ ARRAY_SIZE(v10_bt_off), v10_bt_off },
-			{ ARRAY_SIZE(v20_bt_off_fm_off), v20_bt_off_fm_off },
-			{ ARRAY_SIZE(v20_bt_off_fm_on), v20_bt_off_fm_on }
-		},
-		{
-			{ ARRAY_SIZE(v10_bt_on), v10_bt_on },
-			{ ARRAY_SIZE(v20_bt_on_fm_off), v20_bt_on_fm_off },
-			{ ARRAY_SIZE(v20_bt_on_fm_on), v20_bt_on_fm_on }
-		}
-	};
-
-	u8 offset = 0; /* index into bahama configs */
-
-	on = on ? 1 : 0;
-
-
-	if (bahama_version == VER_2_0) {
-		if (marimba_get_fm_status(&config))
-			offset = 0x01;
-	}
-
-	p = bt_bahama[on][bahama_version + offset].set;
-
-	dev_info(&msm_bt_power_device.dev,
-		"%s: found version %d\n", __func__, bahama_version);
-
-	for (i = 0; i < bt_bahama[on][bahama_version + offset].size; i++) {
-		u8 value = (p+i)->value;
-		rc = marimba_write_bit_mask(&config,
-			(p+i)->reg,
-			&value,
-			sizeof((p+i)->value),
-			(p+i)->mask);
-		if (rc < 0) {
-			dev_err(&msm_bt_power_device.dev,
-				"%s: reg %d write failed: %d\n",
-				__func__, (p+i)->reg, rc);
-			return rc;
-		}
-		dev_info(&msm_bt_power_device.dev,
-			"%s: reg 0x%02x write value 0x%02x mask 0x%02x\n",
-				__func__, (p+i)->reg,
-				value, (p+i)->mask);
-	}
-	/* Update BT status */
-	if (on)
-		marimba_set_bt_status(&config, true);
-	else
-		marimba_set_bt_status(&config, false);
-
-	return 0;
-}
-
-static int bluetooth_regs_init(int bahama_not_marimba)
+static int __init bluetooth_power_init(void)
 {
 	int rc = 0;
 	struct device *const dev = &msm_bt_power_device.dev;
 
-	if (bahama_not_marimba) {
-		bahama_version = read_bahama_ver();
-
-		switch (bahama_version) {
-		case VER_1_0:
-			regs_bt = regs_bt_bahama_v1;
-			regs_bt_count = ARRAY_SIZE(regs_bt_bahama_v1);
-			break;
-		case VER_2_0:
-			regs_bt = regs_bt_bahama_v2;
-			regs_bt_count = ARRAY_SIZE(regs_bt_bahama_v2);
-			break;
-		case VER_UNSUPPORTED:
-		default:
-			dev_err(dev,
-				"%s: i2c failure or unsupported version: %d\n",
-				__func__, bahama_version);
-			rc = -EIO;
-			goto out;
-		}
-	} else {
-		regs_bt = regs_bt_marimba;
-		regs_bt_count = ARRAY_SIZE(regs_bt_marimba);
-	}
-
 	rc = regulator_bulk_get(&msm_bt_power_device.dev,
-			regs_bt_count, regs_bt);
+		ARRAY_SIZE(regs_bt), regs_bt);
 	if (rc) {
 		dev_err(dev, "%s: could not get regulators: %d\n",
 				__func__, rc);
 		goto out;
 	}
 
-	rc = regulator_bulk_set_voltage(regs_bt_count, regs_bt);
+	rc = regulator_bulk_set_voltage(ARRAY_SIZE(regs_bt),
+		regs_bt);
 	if (rc) {
 		dev_err(dev, "%s: could not set voltages: %d\n",
 				__func__, rc);
 		goto reg_free;
 	}
 
+	rc = msm_gpios_request_enable(bt_config_power_control,
+		ARRAY_SIZE(bt_config_power_control));
+	if (rc) {
+		dev_err(dev, "%s: could not request enable gpios: %d\n",
+				__func__, rc);
+		goto reg_free;
+	}
+
+	rc = gpio_direction_output(GPIO_BT_SHUTDOWN_N, 0);
+	msleep(1);
+	rc = gpio_direction_output(GPIO_BT_RESET_N, 0);
+	msleep(1);
+
 	return 0;
 
 reg_free:
-	regulator_bulk_free(regs_bt_count, regs_bt);
+	regulator_bulk_free(ARRAY_SIZE(regs_bt), regs_bt);
 out:
-	regs_bt_count = 0;
-	regs_bt = NULL;
 	return rc;
 }
 
 static int bluetooth_power(int on)
 {
 	int rc;
-	const char *id = "BTPW";
-
-	int bahama_not_marimba = bahama_present();
-
-	if (bahama_not_marimba == -1) {
-		printk(KERN_WARNING "%s: bahama_present: %d\n",
-				__func__, bahama_not_marimba);
-		return -ENODEV;
-	}
-
-	if (unlikely(regs_bt_count == 0)) {
-		rc = bluetooth_regs_init(bahama_not_marimba);
-		if (rc)
-			return rc;
-	}
 
 	if (on) {
-		rc = regulator_bulk_enable(regs_bt_count, regs_bt);
+		rc = regulator_bulk_enable(ARRAY_SIZE(regs_bt),
+			regs_bt);
 		if (rc)
 			return rc;
-
-		rc = pmapp_clock_vote(id, PMAPP_CLOCK_ID_DO,
-					  PMAPP_CLOCK_VOTE_ON);
-		if (rc < 0)
-			return -EIO;
-
-		rc = (bahama_not_marimba ? bahama_bt(on) : marimba_bt(on));
-		if (rc < 0)
-			return -EIO;
-
-		msleep(10);
-
-		rc = pmapp_clock_vote(id, PMAPP_CLOCK_ID_DO,
-					  PMAPP_CLOCK_VOTE_PIN_CTRL);
-		if (rc < 0)
-			return -EIO;
 
 		rc = msm_gpios_enable(bt_config_power_on,
 			ARRAY_SIZE(bt_config_power_on));
-
 		if (rc < 0)
 			return rc;
 
+		rc = gpio_direction_output(GPIO_BT_SHUTDOWN_N, 1);
+		msleep(1);
+		rc = gpio_direction_output(GPIO_BT_RESET_N, 1);
+		msleep(150);
 	} else {
+		rc = gpio_direction_output(GPIO_BT_SHUTDOWN_N, 0);
+		msleep(1);
+		rc = gpio_direction_output(GPIO_BT_RESET_N, 0);
+		msleep(1);
+
 		rc = msm_gpios_enable(bt_config_power_off,
 					ARRAY_SIZE(bt_config_power_off));
 		if (rc < 0)
@@ -2605,16 +2264,8 @@ static int bluetooth_power(int on)
 		if (platform_get_drvdata(&msm_bt_power_device) == NULL)
 			goto out;
 
-		rc = (bahama_not_marimba ? bahama_bt(on) : marimba_bt(on));
-		if (rc < 0)
-			return -EIO;
-
-		rc = pmapp_clock_vote(id, PMAPP_CLOCK_ID_DO,
-					  PMAPP_CLOCK_VOTE_OFF);
-		if (rc < 0)
-			return -EIO;
-
-		rc = regulator_bulk_disable(regs_bt_count, regs_bt);
+		rc = regulator_bulk_disable(ARRAY_SIZE(regs_bt),
+			regs_bt);
 		if (rc)
 			return rc;
 
@@ -2744,7 +2395,7 @@ static struct platform_device *devices[] __initdata = {
 #endif
 	&msm_device_adspdec,
 	&qup_device_i2c,
-#ifdef CONFIG_MARIMBA_CORE
+#ifdef CONFIG_MSM_BT_POWER
 	&msm_bt_power_device,
 #endif
 	&msm_kgsl_3d0,
@@ -3543,6 +3194,7 @@ static void __init msm7x30_init(void)
 	msm7x30_init_mmc();
 
 	atv_dac_power_init();
+	bluetooth_power_init();
 	msm_fb_add_devices();
 	msm_pm_set_platform_data(msm_pm_data, ARRAY_SIZE(msm_pm_data));
 	BUG_ON(msm_pm_boot_init(&msm_pm_boot_pdata));
