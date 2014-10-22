@@ -3108,6 +3108,28 @@ out:
 
 #endif
 
+#ifdef CONFIG_MMC_MSM_SDC3_SUPPORT
+void (*wifi_status_cb)(int card_present, void *dev_id) = NULL;
+void *wifi_status_cb_devid = 0;
+int u8860_wifi_cd = 0; /* WIFI virtual 'card detect' status */
+
+static int msm7x30_sdc3_register_status_notify(
+	void (*callback)(int card_present, void *dev_id), void *dev_id)
+{
+	if (wifi_status_cb)
+		return -EAGAIN;
+
+	wifi_status_cb = callback;
+	wifi_status_cb_devid = dev_id;
+	return 0;
+}
+
+static unsigned int msm7x30_sdc3_status(struct device *dev)
+{
+	return u8860_wifi_cd;
+}
+#endif
+
 #ifdef CONFIG_MMC_MSM_SDC4_SUPPORT
 static unsigned int msm7x30_sdcc_slot_status(struct device *dev)
 {
@@ -3137,11 +3159,12 @@ static struct mmc_platform_data msm7x30_sdc3_data = {
 	.ocr_mask	= MMC_VDD_27_28 | MMC_VDD_28_29,
 	.translate_vdd	= msm_sdcc_setup_power,
 	.mmc_bus_width  = MMC_CAP_4_BIT_DATA,
-	.sdiowakeup_irq = MSM_GPIO_TO_INT(118),
 	.msmsdcc_fmin	= 144000,
 	.msmsdcc_fmid	= 24576000,
 	.msmsdcc_fmax	= 49152000,
 	.nonremovable	= 0,
+	.status		= msm7x30_sdc3_status,
+	.register_status_notify = msm7x30_sdc3_register_status_notify,
 };
 #endif
 
