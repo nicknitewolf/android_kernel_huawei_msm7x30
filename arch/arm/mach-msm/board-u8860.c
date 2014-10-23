@@ -79,6 +79,7 @@
 #include "pm.h"
 
 #include <linux/rmi.h>
+#include <linux/input/lis3dh.h>
 #include <sound/tpa2028d1.h>
 #include <linux/huawei_battery.h>
 
@@ -1573,6 +1574,26 @@ static struct platform_device android_usb_device = {
 };
 #endif
 
+#ifdef CONFIG_STM_LIS3DH
+static struct lis3dh_acc_platform_data lis3dh_acc_pdata = {
+	.poll_interval = 200,
+	.min_interval = 10,
+	.g_range = LIS3DH_ACC_G_2G,
+	.axis_map_x = 0,
+	.axis_map_y = 1,
+	.axis_map_z = 2,
+	.negate_x = 0,
+	.negate_y = 1,
+	.negate_z = 1,
+	.init = NULL,
+	.exit = NULL,
+	.gpio_int1 = -EINVAL,
+	.gpio_int2 = -EINVAL,
+	//.gpio_int1 = 19,
+	//.gpio_int2 = 20,
+};
+#endif
+
 #ifdef CONFIG_SND_SOC_TPA2028D1
 static struct tpa2028d1_callbacks *tpa2028d1_cb = NULL;
 
@@ -1605,6 +1626,12 @@ static struct tpa2028d1_platform_data tpa2028d1_pdata = {
 #endif
 
 static struct i2c_board_info msm_i2c_board_info[] = {
+	#ifdef CONFIG_STM_LIS3DH
+	{
+		I2C_BOARD_INFO(LIS3DH_ACC_DEV_NAME, 0x30 >> 1),
+		.platform_data = &lis3dh_acc_pdata,
+	},
+	#endif
 	#ifdef CONFIG_SND_SOC_TPA2028D1
 	{
 		I2C_BOARD_INFO("tpa2028d1", 0xB0 >> 1),
