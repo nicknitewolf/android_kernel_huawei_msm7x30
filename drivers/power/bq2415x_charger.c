@@ -179,6 +179,7 @@ struct bq2415x_device {
 	int id;
 	enum bq2415x_status last_status;
 	enum bq2415x_mode mode;
+	struct wake_lock wakelock;
 };
 
 /* each registered chip must have unique id */
@@ -865,10 +866,12 @@ static void bq2415x_set_autotimer(struct bq2415x_device *bq, int state)
 	bq->autotimer = state;
 
 	if (state) {
+		wake_lock(&bq->wakelock);
 		schedule_delayed_work(&bq->work, BQ2415X_TIMER_TIMEOUT * HZ);
 		bq2415x_exec_command(bq, BQ2415X_TIMER_RESET);
 	} else {
 		cancel_delayed_work_sync(&bq->work);
+		wake_unlock(&bq->wakelock);
 	}
 
 	mutex_unlock(&bq2415x_timer_mutex);
@@ -1527,6 +1530,8 @@ static int bq2415x_probe(struct i2c_client *client,
 		goto error_3;
 	}
 
+	wake_lock_init(&bq->wakelock, WAKE_LOCK_SUSPEND, "bq2415x_timer");
+
 	bq->init_data.stat_pin_enable = 0;
 	bq->init_data.otg_pin_enable = 0;
 
@@ -1548,6 +1553,7 @@ static int bq2415x_probe(struct i2c_client *client,
 	return 0;
 
 error_4:
+	wake_lock_destroy(&bq->wakelock);
 	bq2415x_sysfs_exit(bq);
 error_3:
 	bq2415x_power_supply_exit(bq);
@@ -1578,6 +1584,8 @@ static int bq2415x_remove(struct i2c_client *client)
 	mutex_lock(&bq2415x_id_mutex);
 	idr_remove(&bq2415x_id, bq->id);
 	mutex_unlock(&bq2415x_id_mutex);
+
+	wake_lock_destroy(&bq->wakelock);
 
 	dev_info(bq->dev, "driver unregistered\n");
 
