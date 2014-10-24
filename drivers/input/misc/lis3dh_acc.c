@@ -68,9 +68,6 @@
 #include	<linux/module.h>
 #include	<linux/regulator/consumer.h>
 
-
-#define	DEBUG	1
-
 #define	G_MAX		16000
 
 
@@ -401,7 +398,7 @@ static int lis3dh_acc_hw_init(struct lis3dh_acc_data *acc)
 	int err = -1;
 	u8 buf[7];
 
-	printk(KERN_INFO "%s: hw init start\n", LIS3DH_ACC_DEV_NAME);
+	pr_debug("%s: hw init start\n", LIS3DH_ACC_DEV_NAME);
 
 	buf[0] = WHO_AM_I;
 	err = lis3dh_acc_i2c_read(acc, buf, 1);
@@ -475,7 +472,7 @@ static int lis3dh_acc_hw_init(struct lis3dh_acc_data *acc)
 		goto err_resume_state;
 
 	acc->hw_initialized = 1;
-	printk(KERN_INFO "%s: hw init done\n", LIS3DH_ACC_DEV_NAME);
+	pr_debug("%s: hw init done\n", LIS3DH_ACC_DEV_NAME);
 	return 0;
 
 err_firstread:
@@ -554,9 +551,7 @@ static irqreturn_t lis3dh_acc_isr1(int irq, void *dev)
 
 	disable_irq_nosync(irq);
 	queue_work(acc->irq1_work_queue, &acc->irq1_work);
-#ifdef DEBUG
-	printk(KERN_INFO "%s: isr1 queued\n", LIS3DH_ACC_DEV_NAME);
-#endif
+	pr_debug("%s: isr1 queued\n", LIS3DH_ACC_DEV_NAME);
 	return IRQ_HANDLED;
 }
 
@@ -566,9 +561,7 @@ static irqreturn_t lis3dh_acc_isr2(int irq, void *dev)
 
 	disable_irq_nosync(irq);
 	queue_work(acc->irq2_work_queue, &acc->irq2_work);
-#ifdef DEBUG
-	printk(KERN_INFO "%s: isr2 queued\n", LIS3DH_ACC_DEV_NAME);
-#endif
+	pr_debug("%s: isr2 queued\n", LIS3DH_ACC_DEV_NAME);
 	return IRQ_HANDLED;
 }
 
@@ -581,7 +574,7 @@ static void lis3dh_acc_irq1_work_func(struct work_struct *work)
 		 ie:lis3dh_acc_get_int1_source(acc); */
 	;
 	/*  */
-	printk(KERN_INFO "%s: IRQ1 triggered\n", LIS3DH_ACC_DEV_NAME);
+	pr_debug("%s: IRQ1 triggered\n", LIS3DH_ACC_DEV_NAME);
 	goto exit;
 exit:
 	enable_irq(acc->irq1);
@@ -596,7 +589,7 @@ static void lis3dh_acc_irq2_work_func(struct work_struct *work)
 		 ie:lis3dh_acc_get_tap_source(acc); */
 	;
 	/*  */
-	printk(KERN_INFO "%s: IRQ2 triggered\n", LIS3DH_ACC_DEV_NAME);
+	pr_debug("%s: IRQ2 triggered\n", LIS3DH_ACC_DEV_NAME);
 	goto exit;
 exit:
 	enable_irq(acc->irq2);
@@ -749,12 +742,10 @@ static int lis3dh_acc_get_acceleration_data(struct lis3dh_acc_data *acc,
 	xyz[2] = ((acc->pdata->negate_z) ? (-hw_d[acc->pdata->axis_map_z])
 		   : (hw_d[acc->pdata->axis_map_z]));
 
-	#ifdef DEBUG
 	/*
-		printk(KERN_INFO "%s read x=%d, y=%d, z=%d\n",
+		pr_debug("%s read x=%d, y=%d, z=%d\n",
 			LIS3DH_ACC_DEV_NAME, xyz[0], xyz[1], xyz[2]);
 	*/
-	#endif
 	return err;
 }
 
@@ -1338,18 +1329,18 @@ static int lis3dh_acc_probe(struct i2c_client *client,
 
 	if (acc->pdata->gpio_int1 >= 0) {
 		acc->irq1 = gpio_to_irq(acc->pdata->gpio_int1);
-		printk(KERN_INFO "%s: %s has set irq1 to irq: %d\n",
+		pr_debug("%s: %s has set irq1 to irq: %d\n",
 			LIS3DH_ACC_DEV_NAME, __func__, acc->irq1);
-		printk(KERN_INFO "%s: %s has mapped irq1 on gpio: %d\n",
+		pr_debug("%s: %s has mapped irq1 on gpio: %d\n",
 			LIS3DH_ACC_DEV_NAME, __func__,
 			acc->pdata->gpio_int1);
 	}
 
 	if (acc->pdata->gpio_int2 >= 0) {
 		acc->irq2 = gpio_to_irq(acc->pdata->gpio_int2);
-		printk(KERN_INFO "%s: %s has set irq2 to irq: %d\n",
+		pr_debug("%s: %s has set irq2 to irq: %d\n",
 			LIS3DH_ACC_DEV_NAME, __func__, acc->irq2);
-		printk(KERN_INFO "%s: %s has mapped irq2 on gpio: %d\n",
+		pr_debug("%s: %s has mapped irq2 on gpio: %d\n",
 			LIS3DH_ACC_DEV_NAME, __func__,
 			acc->pdata->gpio_int2);
 	}
@@ -1556,17 +1547,15 @@ static struct i2c_driver lis3dh_acc_driver = {
 
 static int __init lis3dh_acc_init(void)
 {
-	printk(KERN_INFO "%s accelerometer driver: init\n",
+	pr_debug("%s accelerometer driver: init\n",
 						LIS3DH_ACC_DEV_NAME);
 	return i2c_add_driver(&lis3dh_acc_driver);
 }
 
 static void __exit lis3dh_acc_exit(void)
 {
-#ifdef DEBUG
-	printk(KERN_INFO "%s accelerometer driver exit\n",
+	pr_debug("%s accelerometer driver exit\n",
 						LIS3DH_ACC_DEV_NAME);
-#endif /* DEBUG */
 	i2c_del_driver(&lis3dh_acc_driver);
 	return;
 }
