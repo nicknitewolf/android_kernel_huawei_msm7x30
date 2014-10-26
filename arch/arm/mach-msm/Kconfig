@@ -685,6 +685,7 @@ config MACH_HUAWEI_U8800
        depends on ARCH_MSM7X30
        depends on !MSM_STACKED_MEMORY
        select MSM_HUAWEI_HWPROPS
+       select MSM_HUAWEI_RMT_OEMINFO
        default y
        bool "HUAWEI U8800"
        help
@@ -694,6 +695,7 @@ config MACH_HUAWEI_U8860
        depends on ARCH_MSM7X30
        depends on !MSM_STACKED_MEMORY
        select MSM_HUAWEI_HWPROPS
+       select MSM_HUAWEI_RMT_OEMINFO
        default y
        bool "HUAWEI U8860"
        help
@@ -703,6 +705,7 @@ config MACH_HUAWEI_U8860LP
        depends on ARCH_MSM7X30
        depends on !MSM_STACKED_MEMORY
        select MSM_HUAWEI_HWPROPS
+       select MSM_HUAWEI_RMT_OEMINFO
        default y
        bool "HUAWEI U8860LP"
        help
@@ -712,6 +715,7 @@ config MACH_HUAWEI_U8860_51
        depends on ARCH_MSM7X30
        depends on !MSM_STACKED_MEMORY
        select MSM_HUAWEI_HWPROPS
+       select MSM_HUAWEI_RMT_OEMINFO
        default y
        bool "HUAWEI U8860-51"
        help
@@ -721,6 +725,7 @@ config MACH_HUAWEI_U8860_92
        depends on ARCH_MSM7X30
        depends on !MSM_STACKED_MEMORY
        select MSM_HUAWEI_HWPROPS
+       select MSM_HUAWEI_RMT_OEMINFO
        default y
        bool "HUAWEI U8860-92"
        help
@@ -730,6 +735,7 @@ config MACH_HUAWEI_U8860_R
        depends on ARCH_MSM7X30
        depends on !MSM_STACKED_MEMORY
        select MSM_HUAWEI_HWPROPS
+       select MSM_HUAWEI_RMT_OEMINFO
        default y
        bool "HUAWEI U8860-R"
        help
@@ -739,6 +745,7 @@ config MACH_HUAWEI_C8860
        depends on ARCH_MSM7X30
        depends on !MSM_STACKED_MEMORY
        select MSM_HUAWEI_HWPROPS
+       select MSM_HUAWEI_RMT_OEMINFO
        default y
        bool "HUAWEI C8860"
        help
@@ -2718,4 +2725,12 @@ config MSM_HUAWEI_HWPROPS
 	  addresses, serial number.
 
 	  Exported to userspace under /sys/hwprops.
+
+config MSM_HUAWEI_RMT_OEMINFO
+	depends on (ARCH_MSM && MSM_ONCRPCROUTER)
+	default n
+	bool "Huawei Remote Oeminfo RPC client"
+	help
+	  Provide RPC mechanism for remote processors to access oeminfo storage
+	  device on apps processor.
 endif

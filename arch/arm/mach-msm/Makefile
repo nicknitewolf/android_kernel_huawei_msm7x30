@@ -424,3 +424,4 @@ obj-$(CONFIG_ARCH_RANDOM) += early_random.o
 obj-$(CONFIG_MSM_FIQ) += msm7k_fiq.o
 obj-$(CONFIG_MSM_FIQ) += msm7k_fiq_handler.o
 obj-$(CONFIG_MSM_HUAWEI_HWPROPS) += huawei_hwprops.o
+obj-$(CONFIG_MSM_HUAWEI_RMT_OEMINFO) += huawei_rmt_oeminfo.o

@@ -2399,6 +2399,13 @@ static struct platform_device huawei_bat_device = {
 };
 #endif
 
+#ifdef CONFIG_MSM_HUAWEI_RMT_OEMINFO
+static struct platform_device huawei_rmt_oeminfo_device = {
+	.name		= "rmt_oeminfo",
+	.id		= -1,
+};
+#endif
+
 static struct platform_device *devices[] __initdata = {
 #if defined(CONFIG_SERIAL_MSM) || defined(CONFIG_MSM_SERIAL_DEBUGGER)
 	&msm_device_uart2,
@@ -2495,6 +2502,9 @@ static struct platform_device *devices[] __initdata = {
 #endif
 #ifdef CONFIG_BATTERY_HUAWEI
 	&huawei_bat_device,
+#endif
+#ifdef CONFIG_MSM_HUAWEI_RMT_OEMINFO
+	&huawei_rmt_oeminfo_device,
 #endif
 };
 
