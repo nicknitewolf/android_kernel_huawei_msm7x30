@@ -79,6 +79,7 @@
 #include "pm.h"
 
 #include <linux/rmi.h>
+#include <linux/i2c/apds993x.h>
 #include <linux/input/lis3dh.h>
 #include <sound/tpa2028d1.h>
 #include <linux/huawei_battery.h>
@@ -1574,6 +1575,22 @@ static struct platform_device android_usb_device = {
 };
 #endif
 
+#ifdef CONFIG_APDS9930
+static struct apds993x_platform_data apds993x_pdata = {
+	.prox_threshold = 800,
+	.prox_hsyteresis_threshold = 700,
+	.prox_pulse = 4,
+	.prox_gain = 0,
+	.cross_talk = 0,
+	.als_B = 1948,
+	.als_C = 613,
+	.als_D = 1163,
+	.ga_value = 515,
+	.default_cal = 0,
+	.irq_gpio = 89,
+};
+#endif
+
 #ifdef CONFIG_STM_LIS3DH
 static struct lis3dh_acc_platform_data lis3dh_acc_pdata = {
 	.poll_interval = 200,
@@ -1626,6 +1643,13 @@ static struct tpa2028d1_platform_data tpa2028d1_pdata = {
 #endif
 
 static struct i2c_board_info msm_i2c_board_info[] = {
+	#ifdef CONFIG_APDS9930
+	{
+		I2C_BOARD_INFO("apds993x", 0x39),
+		.platform_data = &apds993x_pdata,
+		.irq = MSM_GPIO_TO_INT(89),
+	},
+	#endif
 	#ifdef CONFIG_STM_LIS3DH
 	{
 		I2C_BOARD_INFO(LIS3DH_ACC_DEV_NAME, 0x30 >> 1),
