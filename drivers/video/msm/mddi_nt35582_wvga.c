@@ -24,7 +24,7 @@
 #define ENTER_SLEEP_MODE			0x1000
 #define EXIT_SLEEP_MODE				0x1100
 
-#define NT35582_PWM_LEVEL	256
+#define NT35582_PWM_LEVEL	255
 #define NT35582_PWM_FREQ_HZ	21480
 #define NT35582_PWM_PERIOD_NSEC	(NSEC_PER_SEC / NT35582_PWM_FREQ_HZ)
 #define NT35582_PWM_DUTY_LEVEL	(NT35582_PWM_PERIOD_NSEC / NT35582_PWM_LEVEL)
@@ -162,8 +162,8 @@ static int __init mddi_nt35582_wvga_init(void)
 	pinfo->lcd.vsync_enable = TRUE;
 	pinfo->lcd.hw_vsync_mode = TRUE;
 	pinfo->lcd.vsync_notifier_period = (1 * HZ);
-	pinfo->bl_max = 256;
-	pinfo->bl_min = 1;
+	pinfo->bl_max = 255;
+	pinfo->bl_min = 6;
 	pinfo->clk_rate = 192000000;
 	pinfo->clk_min = 192000000;
 	pinfo->clk_max = 192000000;
