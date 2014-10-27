@@ -3817,7 +3817,7 @@ static struct rmi_f11_sensor_data synaptics_f11_sensor_data = {
 
 static int synaptics_pre_resume(const void *pm_data)
 {
-	msleep(50);
+	msleep(100);
 	return 0;
 }
 
