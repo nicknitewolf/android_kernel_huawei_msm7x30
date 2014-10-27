@@ -69,26 +69,51 @@ struct aps_12d_data *_aps_data;
 static int aps_12d_read_reg(struct i2c_client *client, uint8_t reg)
 {
 	int ret;
+	struct i2c_msg msg[2];
+	u8 val;
+
+	msg[0].addr = client->addr;
+	msg[0].flags = 0;
+	msg[0].buf = &reg;
+	msg[0].len = sizeof(reg);
+	msg[1].addr = client->addr;
+	msg[1].flags = I2C_M_RD;
+	msg[1].buf = &val;
+	msg[1].len = sizeof(val);
 
 	/* Read register data. */
-	ret = i2c_smbus_read_byte_data(client, reg);
-	if (ret < 0)
+	ret = i2c_transfer(client->adapter, msg, ARRAY_SIZE(msg));
+	if (ret != ARRAY_SIZE(msg)) {
 		dev_err(&client->dev, "Failed to read 0x%02x reg\n", reg);
+		return -EIO;
+	}
 
-	return ret;
+	return val;
 }
 
 static int aps_12d_write_reg(struct i2c_client *client,
 	uint8_t reg, uint8_t val)
 {
 	int ret;
+	struct i2c_msg msg[1];
+	u8 data[2];
+
+	data[0] = reg;
+	data[1] = val;
+
+	msg[0].addr = client->addr;
+	msg[0].flags = 0;
+	msg[0].buf = data;
+	msg[0].len = ARRAY_SIZE(data);
 
 	/* Write register data. */
-	ret = i2c_smbus_write_byte_data(client, reg, val);
-	if (ret)
+	ret = i2c_transfer(client->adapter, msg, ARRAY_SIZE(msg));
+	if (ret != ARRAY_SIZE(msg)) {
 		dev_err(&client->dev, "Failed to write 0x%02x reg\n", reg);
+		return -EIO;
+	}
 
-	return ret;
+	return 0;
 }
 
 static uint16_t aps_12d_8bit_to_12bit(uint8_t lsb, uint8_t msb)
