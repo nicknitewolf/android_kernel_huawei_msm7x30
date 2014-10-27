@@ -407,13 +407,14 @@ static void aps_12d_input_light_work_func(struct work_struct *work)
 	/* First, do the als. */
 	aps_12d_write_light(data);
 
-	if (!data->sensors[APS_12D_SENSOR_LIGHT].enabled)
-		goto work_end;
-
 	msleep(MINIMUM_DELAY_MS);
 
 	adc_count = aps_12d_adc_count(data->client);
 	if (adc_count < 0)
+		goto work_end;
+
+	/* Check for sensor enable before returning new data. */
+	if (!data->sensors[APS_12D_SENSOR_LIGHT].enabled)
 		goto work_end;
 
 	/* Second, report the data. */
@@ -440,9 +441,6 @@ static void aps_12d_input_prox_work_func(struct work_struct *work)
 	/* First, do the surround IR. */
 	aps_12d_write_proximity(data, true);
 
-	if (!data->sensors[APS_12D_SENSOR_PROXIMITY].enabled)
-		goto work_end;
-
 	msleep(MINIMUM_DELAY_MS);
 
 	surround_adc = aps_12d_adc_count(data->client);
@@ -452,13 +450,14 @@ static void aps_12d_input_prox_work_func(struct work_struct *work)
 	/* Second, do the proximity IR. */
 	aps_12d_write_proximity(data, false);
 
-	if (!data->sensors[APS_12D_SENSOR_PROXIMITY].enabled)
-		goto work_end;
-
 	msleep(MINIMUM_DELAY_MS);
 
 	proximity_adc = aps_12d_adc_count(data->client);
 	if (proximity_adc < 0)
+		goto work_end;
+
+	/* Check for sensor enable before returning new data. */
+	if (!data->sensors[APS_12D_SENSOR_PROXIMITY].enabled)
 		goto work_end;
 
 	/* Third, calculate the ADC. */
