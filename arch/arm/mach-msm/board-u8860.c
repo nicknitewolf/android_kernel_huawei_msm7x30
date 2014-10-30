@@ -3115,28 +3115,29 @@ static int virtual_key_setup(void)
 }
 
 #ifdef CONFIG_RMI4_I2C
+static struct regulator *synaptics_reg = NULL;
+
 static int synaptics_touchpad_gpio_setup(void *gpio_data, bool configure)
 {
 	int retval = 0;
-	static struct regulator *vcc_ana = NULL;
 
 	if (configure) {
-		vcc_ana = regulator_get(NULL, "gp4");
-		if (IS_ERR(vcc_ana)) {
-			retval = PTR_ERR(vcc_ana);
+		synaptics_reg = regulator_get(NULL, "gp4");
+		if (IS_ERR(synaptics_reg)) {
+			retval = PTR_ERR(synaptics_reg);
 			pr_err("%s: Failed to request regulator. Code: %d.",
 				__func__, retval);
 			return retval;
 		}
 
-		retval = regulator_set_voltage(vcc_ana, 2700000, 2700000);
+		retval = regulator_set_voltage(synaptics_reg, 2700000, 2700000);
 		if (retval) {
 			pr_err("%s: Failed to set regulator voltage. Code: %d.",
 				__func__, retval);
 			return retval;
 		}
 
-		retval = regulator_enable(vcc_ana);
+		retval = regulator_enable(synaptics_reg);
 		if (retval) {
 			pr_err("%s: Failed to enable regulator. Code: %d.",
 				__func__, retval);
@@ -3184,9 +3185,9 @@ static int synaptics_touchpad_gpio_setup(void *gpio_data, bool configure)
 	} else {
 		gpio_free(TS_GPIO_RESET);
 		gpio_free(TS_GPIO_IRQ);
-		if (vcc_ana) {
-			regulator_disable(vcc_ana);
-			regulator_put(vcc_ana);
+		if (synaptics_reg) {
+			regulator_disable(synaptics_reg);
+			regulator_put(synaptics_reg);
 		}
 	}
 
@@ -3198,9 +3199,28 @@ static struct rmi_f11_sensor_data synaptics_f11_sensor_data = {
 	},
 };
 
+static int synaptics_post_suspend(const void *pm_data)
+{
+	if (!synaptics_reg)
+		return 0;
+
+	return regulator_disable(synaptics_reg);
+}
+
 static int synaptics_pre_resume(const void *pm_data)
 {
-	msleep(50);
+	int ret;
+	if (!synaptics_reg)
+		return 0;
+
+	ret = regulator_enable(synaptics_reg);
+	if (ret) {
+		pr_err("%s: regulator enable failed ret=%d\n", __func__, ret);
+		return ret;
+	}
+
+	msleep(150);
+
 	return 0;
 }
 
@@ -3212,6 +3232,7 @@ static struct rmi_device_platform_data synaptics_platform_data = {
 	.gpio_config = synaptics_touchpad_gpio_setup,
 	.reset_delay_ms = 100,
 	.f11_sensor_data = &synaptics_f11_sensor_data,
+	.post_suspend = synaptics_post_suspend,
 	.pre_resume = synaptics_pre_resume,
 };
 
