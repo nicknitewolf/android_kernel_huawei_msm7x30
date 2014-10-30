@@ -3635,7 +3635,7 @@ static struct attribute_group virtual_key_properties_attr_group = {
 static int virtual_key_setup(void)
 {
 	int ret = 0;
-	static struct kobject *virtual_key_properties_kobj;
+	static struct kobject *virtual_key_properties_kobj = NULL;
 
 	/* Already registered. */
 	if (virtual_key_properties_kobj)
