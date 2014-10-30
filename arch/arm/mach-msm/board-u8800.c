@@ -3815,6 +3815,8 @@ static int synaptics_gpio_setup(void *gpio_data, bool configure)
 }
 static struct rmi_f11_sensor_data synaptics_f11_sensor_data = {
 	.axis_align = {
+		.delta_x_threshold = 4,
+		.delta_y_threshold = 4,
 		.button_height = 169,
 	},
 };
