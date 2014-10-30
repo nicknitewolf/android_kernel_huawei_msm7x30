@@ -3194,7 +3194,7 @@ static int synaptics_touchpad_gpio_setup(void *gpio_data, bool configure)
 }
 static struct rmi_f11_sensor_data synaptics_f11_sensor_data = {
 	.axis_align = {
-		.button_height = 169,
+		.button_height = 245,
 	},
 };
 
