@@ -3784,8 +3784,6 @@ static int synaptics_gpio_setup(void *gpio_data, bool configure)
 			return retval;
 		}
 		msleep(150);
-
-		virtual_key_setup();
 	} else {
 		gpio_free(TS_GPIO_RESET);
 		if (synaptics_reg) {
