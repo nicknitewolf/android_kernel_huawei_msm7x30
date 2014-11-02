@@ -28,7 +28,6 @@
 #include <linux/rmi.h>
 #include <linux/slab.h>
 #include <linux/uaccess.h>
-#include <uapi/linux/input.h>
 #include "rmi_bus.h"
 #include "rmi_driver.h"
 
@@ -880,9 +879,6 @@ static int rmi_driver_probe(struct device *dev)
 				(pdata->attn_polarity == RMI_ATTN_ACTIVE_HIGH)
 				? IRQF_TRIGGER_RISING : IRQF_TRIGGER_FALLING;
 		}
-
-		if (IS_ENABLED(CONFIG_RMI4_DEV))
-			gpio_flags |= GPIOF_EXPORT;
 
 		retval = gpio_request_one(pdata->attn_gpio, gpio_flags,
 					  GPIO_LABEL);

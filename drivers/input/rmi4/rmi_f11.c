@@ -736,7 +736,7 @@ static void rmi_f11_finger_handler(struct f11_data *f11,
 			rmi_f11_rel_pos_report(sensor, i);
 	}
 
-	input_mt_sync_frame(sensor->input);
+	input_report_key(sensor->input, BTN_TOUCH, finger_pressed_count);
 	input_sync(sensor->input);
 }
 
@@ -1139,9 +1139,10 @@ static void f11_set_abs_params(struct rmi_function *fn, struct f11_data *f11)
 	 * as a touchpad in the platform data
 	 */
 	if (sensor->sensor_type == rmi_f11_sensor_touchpad)
-		input_flags = INPUT_MT_POINTER;
+		input_flags = INPUT_PROP_POINTER;
 	else
-		input_flags = INPUT_MT_DIRECT;
+		input_flags = INPUT_PROP_DIRECT;
+	set_bit(input_flags, input->propbit);
 
 	if (sensor->axis_align.swap_axes) {
 		int temp = device_x_max;
@@ -1197,7 +1198,7 @@ static void f11_set_abs_params(struct rmi_function *fn, struct f11_data *f11)
 	}
 
 	if (!sensor->type_a)
-		input_mt_init_slots(input, sensor->nbr_fingers, input_flags);
+		input_mt_init_slots(input, sensor->nbr_fingers);
 	if (IS_ENABLED(CONFIG_RMI4_F11_PEN) && sensor->sens_query.has_pen)
 		input_set_abs_params(input, ABS_MT_TOOL_TYPE,
 				     0, MT_TOOL_MAX, 0, 0);
