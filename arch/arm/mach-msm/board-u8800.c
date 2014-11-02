@@ -3761,21 +3761,6 @@ static int synaptics_gpio_setup(void *gpio_data, bool configure)
 			return retval;
 		}
 
-		retval = gpio_request(TS_GPIO_IRQ, "rmi4_attn");
-		if (retval) {
-			pr_err("%s: Failed to get attn gpio %d. Code: %d.",
-			       __func__, TS_GPIO_IRQ, retval);
-			return retval;
-		}
-
-		retval = gpio_direction_input(TS_GPIO_IRQ);
-		if (retval) {
-			pr_err("%s: Failed to setup attn gpio %d. Code: %d.",
-			       __func__, TS_GPIO_IRQ, retval);
-			gpio_free(TS_GPIO_IRQ);
-			return retval;
-		}
-
 		retval = gpio_request(TS_GPIO_RESET, "rmi4_reset");
 		if (retval) {
 			pr_err("%s: Failed to get reset gpio %d. Code: %d.",
@@ -3798,12 +3783,11 @@ static int synaptics_gpio_setup(void *gpio_data, bool configure)
 			gpio_free(TS_GPIO_RESET);
 			return retval;
 		}
-		msleep(50);
+		msleep(150);
 
 		virtual_key_setup();
 	} else {
 		gpio_free(TS_GPIO_RESET);
-		gpio_free(TS_GPIO_IRQ);
 		if (synaptics_reg) {
 			regulator_disable(synaptics_reg);
 			regulator_put(synaptics_reg);
