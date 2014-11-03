@@ -81,6 +81,7 @@
 #include <linux/rmi.h>
 #include <linux/i2c/apds993x.h>
 #include <linux/input/lis3dh.h>
+#include <linux/l3g4200d.h>
 #include <sound/tpa2028d1.h>
 #include <linux/huawei_battery.h>
 
@@ -1691,6 +1692,71 @@ static struct rmi_device_platform_data synaptics_platform_data = {
 };
 #endif
 
+#ifdef CONFIG_INPUT_L3G4200D
+static struct regulator *l3g4200d_reg = NULL;
+
+static int l3g4200d_init(void)
+{
+	int ret = 0;
+
+	if (l3g4200d_reg)
+		return 0;
+
+	l3g4200d_reg = regulator_get(NULL, "gp4");
+	if (IS_ERR(l3g4200d_reg)) {
+		ret = PTR_ERR(l3g4200d_reg);
+		pr_err("%s: Failed to request regulator. Code: %d.",
+			__func__, ret);
+		return ret;
+	}
+
+	ret = regulator_set_voltage(l3g4200d_reg, 2400000, 3600000);
+	if (ret) {
+		ret = PTR_ERR(l3g4200d_reg);
+		pr_err("%s: Failed to set regulator voltage. Code: %d.",
+			__func__, ret);
+		return ret;
+	}
+
+	return ret;
+}
+
+static void l3g4200d_exit(void)
+{
+	if (l3g4200d_reg) {
+		regulator_put(l3g4200d_reg);
+		l3g4200d_reg = NULL;
+	}
+}
+
+static int l3g4200d_power_on(void)
+{
+	return regulator_enable(l3g4200d_reg);
+}
+
+static int l3g4200d_power_off(void)
+{
+	return regulator_disable(l3g4200d_reg);
+}
+
+static struct l3g4200d_platform_data l3g4200d_pdata = {
+	.init = l3g4200d_init,
+	.exit = l3g4200d_exit,
+	.power_on = l3g4200d_power_on,
+	.power_off = l3g4200d_power_off,
+	.poll_interval = 200,
+	.min_interval = L3G4200D_MIN_POLL_PERIOD_MS,
+	.fs_range = L3G4200D_FS_2000DPS,
+	.temp_calibration = L3G4200D_DEFAULT_TEMP_CALIBRATION,
+	.axis_map_x = 1,
+	.axis_map_y = 0,
+	.axis_map_z = 2,
+	.negate_x = 0,
+	.negate_y = 0,
+	.negate_z = 1,
+};
+#endif
+
 static struct i2c_board_info msm_i2c_board_info[] = {
 	#ifdef CONFIG_APDS9930
 	{
@@ -1716,6 +1782,12 @@ static struct i2c_board_info msm_i2c_board_info[] = {
 		I2C_BOARD_INFO("rmi_i2c", 0x70),
 		.platform_data = &synaptics_platform_data,
 		.irq = MSM_GPIO_TO_INT(TS_GPIO_IRQ),
+	},
+	#endif
+	#ifdef CONFIG_INPUT_L3G4200D
+	{
+		I2C_BOARD_INFO(L3G4200D_DEV_NAME, L3G4200D_I2C_SAD_L),
+		.platform_data = &l3g4200d_pdata,
 	},
 	#endif
 };
