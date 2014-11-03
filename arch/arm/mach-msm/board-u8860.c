@@ -1673,7 +1673,7 @@ static int synaptics_pre_resume(const void *pm_data)
 		return ret;
 	}
 
-	msleep(150);
+	msleep(200);
 
 	return 0;
 }
