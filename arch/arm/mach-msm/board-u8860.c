@@ -78,6 +78,7 @@
 #include "board-u8860.h"
 #include "pm.h"
 
+#include <linux/akm8975.h>
 #include <linux/rmi.h>
 #include <linux/i2c/apds993x.h>
 #include <linux/input/lis3dh.h>
@@ -1757,6 +1758,54 @@ static struct l3g4200d_platform_data l3g4200d_pdata = {
 };
 #endif
 
+#ifdef CONFIG_SENSORS_AK8975
+#define AKM8975_GPIO_DRDY	132
+static int __init akm_init(void)
+{
+	int ret = 0;
+	struct regulator *akm_reg;
+
+	akm_reg = regulator_get(NULL, "gp4");
+	if (IS_ERR(akm_reg)) {
+		ret = PTR_ERR(akm_reg);
+		pr_err("%s: Failed to request regulator ret=%d\n",
+			__func__, ret);
+		return ret;
+	}
+
+	ret = regulator_set_voltage(akm_reg, 2400000, 3600000);
+	if (ret) {
+		ret = PTR_ERR(akm_reg);
+		pr_err("%s: Failed to set regulator voltage ret=%d\n",
+			__func__, ret);
+		return ret;
+	}
+
+	ret = regulator_enable(akm_reg);
+	if (ret) {
+		ret = PTR_ERR(akm_reg);
+		pr_err("%s: Failed to enable regulator ret=%d\n",
+			__func__, ret);
+		return ret;
+	}
+
+	ret = gpio_request(AKM8975_GPIO_DRDY, "akm_drdy");
+	if (ret) {
+		pr_err("%s: Failed to request gpio ret=%d\n",
+			__func__, ret);
+		return ret;
+	}
+
+	return 0;
+}
+
+static struct akm8975_platform_data akm8975_pdata = {
+	.layout = 7,
+	.gpio_DRDY = AKM8975_GPIO_DRDY,
+	.gpio_RSTN = 0,
+};
+#endif
+
 static struct i2c_board_info msm_i2c_board_info[] = {
 	#ifdef CONFIG_APDS9930
 	{
@@ -1788,6 +1837,13 @@ static struct i2c_board_info msm_i2c_board_info[] = {
 	{
 		I2C_BOARD_INFO(L3G4200D_DEV_NAME, L3G4200D_I2C_SAD_L),
 		.platform_data = &l3g4200d_pdata,
+	},
+	#endif
+	#ifdef CONFIG_SENSORS_AK8975
+	{
+		I2C_BOARD_INFO(AKM_I2C_NAME, 0x18 >> 1),
+		.platform_data = &akm8975_pdata,
+		.irq = MSM_GPIO_TO_INT(AKM8975_GPIO_DRDY),
 	},
 	#endif
 };
@@ -3227,6 +3283,9 @@ static void __init msm7x30_init(void)
 #ifdef CONFIG_MSM7KV2_AUDIO
 	snddev_hsed_voltage_init();
 	aux_pcm_gpio_init();
+#endif
+#ifdef CONFIG_SENSORS_AK8975
+	akm_init();
 #endif
 
 	i2c_register_board_info(0, msm_i2c_board_info,

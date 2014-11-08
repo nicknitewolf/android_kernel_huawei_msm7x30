@@ -45,6 +45,13 @@ static struct gpiomux_setting apds_int_sus_cfg = {
 	.dir = GPIOMUX_IN,
 };
 
+static struct gpiomux_setting akm_int_sus_cfg = {
+	.func = GPIOMUX_FUNC_GPIO,
+	.drv = GPIOMUX_DRV_2MA,
+	.pull = GPIOMUX_PULL_DOWN,
+	.dir = GPIOMUX_IN,
+};
+
 static struct msm_gpiomux_config u8800_standard_configs[] __initdata = {
 	{	/* TOUCH_RESET */
 		.gpio = 85,
@@ -57,6 +64,13 @@ static struct msm_gpiomux_config u8800_standard_configs[] __initdata = {
 		.gpio = 89,
 		.settings = {
 			[GPIOMUX_SUSPENDED]	= &apds_int_sus_cfg,
+		},
+	},
+	{
+		/* AKM_INT */
+		.gpio = 132,
+		.settings = {
+			[GPIOMUX_SUSPENDED]	= &akm_int_sus_cfg,
 		},
 	},
 	{	/* TOUCH_INT */
