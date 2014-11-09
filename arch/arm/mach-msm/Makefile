@@ -103,17 +103,7 @@ ifndef CONFIG_ARCH_MSM8974
 ifndef CONFIG_ARCH_MSM9625
 ifndef CONFIG_MACH_HUAWEI_U8800
 ifndef CONFIG_MACH_HUAWEI_U8860
-ifndef CONFIG_MACH_HUAWEI_U8860LP
-ifndef CONFIG_MACH_HUAWEI_U8860_51
-ifndef CONFIG_MACH_HUAWEI_U8860_92
-ifndef CONFIG_MACH_HUAWEI_U8860_R
-ifndef CONFIG_MACH_HUAWEI_C8860
 	obj-y += nand_partitions.o
-endif
-endif
-endif
-endif
-endif
 endif
 endif
 endif
@@ -266,11 +256,6 @@ obj-$(CONFIG_MACH_MSM8X55_SVLTE_FFA) += board-msm7x30.o devices-msm7x30.o gpiomu
 obj-$(CONFIG_MACH_MSM8X55_SVLTE_SURF) += board-msm7x30.o devices-msm7x30.o gpiomux-7x30.o
 obj-$(CONFIG_MACH_HUAWEI_U8800) += board-u8800.o devices-u8800.o board-u8800-gpiomux.o
 obj-$(CONFIG_MACH_HUAWEI_U8860) += board-u8860.o devices-u8860.o board-u8860-gpiomux.o board-u8860-wifi.o
-obj-$(CONFIG_MACH_HUAWEI_U8860LP) += board-u8860.o devices-u8860.o board-u8860-gpiomux.o board-u8860-wifi.o
-obj-$(CONFIG_MACH_HUAWEI_U8860_51) += board-u8860.o devices-u8860.o board-u8860-gpiomux.o board-u8860-wifi.o
-obj-$(CONFIG_MACH_HUAWEI_U8860_92) += board-u8860.o devices-u8860.o board-u8860-gpiomux.o board-u8860-wifi.o
-obj-$(CONFIG_MACH_HUAWEI_U8860_R) += board-u8860.o devices-u8860.o board-u8860-gpiomux.o board-u8860-wifi.o
-obj-$(CONFIG_MACH_HUAWEI_C8860) += board-u8860.o devices-u8860.o board-u8860-gpiomux.o board-u8860-wifi.o
 obj-$(CONFIG_ARCH_MSM7X30) += memory_topology.o clock-local.o clock-7x30.o acpuclock-7x30.o clock-pll.o
 obj-$(CONFIG_MACH_MSM7X25_SURF) += board-msm7x27.o devices-msm7x25.o
 obj-$(CONFIG_MACH_MSM7X25_FFA) += board-msm7x27.o devices-msm7x25.o
@@ -388,11 +373,6 @@ obj-$(CONFIG_MACH_MSM8X55_SVLTE_FFA) += board-msm7x30-regulator.o
 obj-$(CONFIG_MACH_MSM8X55_SVLTE_SURF) += board-msm7x30-regulator.o
 obj-$(CONFIG_MACH_HUAWEI_U8800) += board-u8800-regulator.o
 obj-$(CONFIG_MACH_HUAWEI_U8860) += board-u8860-regulator.o
-obj-$(CONFIG_MACH_HUAWEI_U8860LP) += board-u8860-regulator.o
-obj-$(CONFIG_MACH_HUAWEI_U8860_51) += board-u8860-regulator.o
-obj-$(CONFIG_MACH_HUAWEI_U8860_92) += board-u8860-regulator.o
-obj-$(CONFIG_MACH_HUAWEI_U8860_R) += board-u8860-regulator.o
-obj-$(CONFIG_MACH_HUAWEI_C8860) += board-u8860-regulator.o
 obj-$(CONFIG_ARCH_MSM7X27A) += board-msm7x27a-regulator.o
 endif
 
