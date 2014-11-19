@@ -409,6 +409,11 @@ static struct i2c_board_info msm_camera_boardinfo[] __initdata = {
 		I2C_BOARD_INFO("mt9e013", 0x6C >> 2),
 	},
 #endif
+#ifdef CONFIG_MT9V114
+	{
+		I2C_BOARD_INFO("mt9v114", 0x7A >> 1),
+	},
+#endif
 };
 
 #ifdef CONFIG_MSM_CAMERA
@@ -502,6 +507,18 @@ static uint32_t camera_on_gpio_mt9e013_table[] = {
 };
 #endif
 
+#ifdef CONFIG_MT9V114
+static uint32_t camera_off_gpio_mt9v114_table[] = {
+	/* CAMIF_RESET_INS_N */
+	GPIO_CFG(31, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP, GPIO_CFG_2MA),
+};
+
+static uint32_t camera_on_gpio_mt9v114_table[] = {
+	/* CAMIF_RESET_INS_N */
+	GPIO_CFG(31, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
+};
+#endif
+
 static void config_gpio_table(uint32_t *table, int len)
 {
 	int n, rc;
@@ -525,6 +542,10 @@ static int config_camera_on_gpios(void)
 	config_gpio_table(camera_on_gpio_mt9e013_table,
 		ARRAY_SIZE(camera_on_gpio_mt9e013_table));
 #endif
+#ifdef CONFIG_MT9V114
+	config_gpio_table(camera_on_gpio_mt9v114_table,
+		ARRAY_SIZE(camera_on_gpio_mt9v114_table));
+#endif
 	return 0;
 }
 
@@ -538,6 +559,10 @@ static void config_camera_off_gpios(void)
 #ifdef CONFIG_MT9E013
 	config_gpio_table(camera_off_gpio_mt9e013_table,
 		ARRAY_SIZE(camera_off_gpio_mt9e013_table));
+#endif
+#ifdef CONFIG_MT9V114
+	config_gpio_table(camera_off_gpio_mt9v114_table,
+		ARRAY_SIZE(camera_off_gpio_mt9v114_table));
 #endif
 }
 
@@ -671,6 +696,33 @@ static struct platform_device msm_camera_sensor_mt9e013 = {
 	.name = "msm_camera_mt9e013",
 	.dev = {
 		.platform_data = &msm_camera_sensor_mt9e013_data,
+	},
+};
+#endif
+
+#ifdef CONFIG_MT9V114
+static struct msm_camera_sensor_platform_info sensor_board_info_mt9v114 = {
+	.mount_angle = 180
+};
+
+static struct msm_camera_sensor_flash_data flash_mt9v114 = {
+	.flash_type = MSM_CAMERA_FLASH_NONE,
+};
+
+static struct msm_camera_sensor_info msm_camera_sensor_mt9v114_data = {
+	.sensor_name		= "mt9v114_sunny",
+	.sensor_pwd		= 52,
+	.pdata			= &msm_camera_device_data,
+	.resource		= msm_camera_resources,
+	.num_resources		= ARRAY_SIZE(msm_camera_resources),
+	.flash_data		= &flash_mt9v114,
+	.sensor_platform_info	= &sensor_board_info_mt9v114,
+};
+
+static struct platform_device msm_camera_sensor_mt9v114 = {
+	.name = "msm_camera_mt9v114",
+	.dev = {
+		.platform_data = &msm_camera_sensor_mt9v114_data,
 	},
 };
 #endif
@@ -2731,6 +2783,9 @@ static struct platform_device *devices[] __initdata = {
 	&msm_kgsl_2d0,
 #ifdef CONFIG_MT9E013
 	&msm_camera_sensor_mt9e013,
+#endif
+#ifdef CONFIG_MT9V114
+	&msm_camera_sensor_mt9v114,
 #endif
 	&msm_device_vidc_720p,
 #ifdef CONFIG_MSM_GEMINI
