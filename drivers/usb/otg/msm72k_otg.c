@@ -47,6 +47,8 @@ static void msm_otg_set_id_state(int id)
 
 struct msm_otg *the_msm_otg;
 
+static int manual_chg = -1;
+
 #ifdef CONFIG_USB_MSM_OTG_72K_MODE_SWITCH
 static void msm_otg_start_peripheral(struct usb_otg *otg, int on);
 static void msm_otg_start_host(struct usb_otg *otg, int on);
@@ -575,6 +577,12 @@ static int msm_otg_set_power(struct usb_phy *xceiv, unsigned mA)
 	enum chg_type 		new_chg = atomic_read(&dev->chg_type);
 	unsigned 		charge = mA;
 
+	/* Manually disable/set charging current limit. */
+	if (manual_chg == 0)
+		new_chg = USB_CHG_TYPE__INVALID;
+	else if (manual_chg > 0)
+		charge = manual_chg;
+
 	/* Call chg_connected only if the charger has changed */
 	if (new_chg != curr_chg && pdata->chg_connected) {
 		curr_chg = new_chg;
@@ -586,7 +594,7 @@ static int msm_otg_set_power(struct usb_phy *xceiv, unsigned mA)
 				test_bit(ID_B, &dev->inputs))
 		charge = USB_IDCHG_MAX;
 
-	if (dev->curr_power == charge)
+	if (dev->curr_power == charge && manual_chg != -1)
 		return 0;
 
 	pr_debug("Charging with %dmA current\n", charge);
@@ -598,7 +606,9 @@ static int msm_otg_set_power(struct usb_phy *xceiv, unsigned mA)
 		(charge || new_chg != USB_CHG_TYPE__WALLCHARGER))
 			pdata->chg_vbus_draw(charge);
 
-	dev->curr_power = charge;
+	/* Store current power only if not manually set. */
+	if (manual_chg < 0)
+		dev->curr_power = charge;
 
 	if (new_chg == USB_CHG_TYPE__WALLCHARGER) {
 		wake_lock(&dev->wlock);
@@ -2484,6 +2494,35 @@ set_clr_err(struct device *_dev, struct device_attribute *attr,
 }
 static DEVICE_ATTR(clr_err, S_IRUGO | S_IWUSR, NULL, set_clr_err);
 
+static ssize_t manual_chg_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	return sprintf(buf, "%d\n", manual_chg);
+}
+
+static ssize_t manual_chg_store(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct msm_otg *otg_dev = the_msm_otg;
+	int new_manual_chg;
+
+	if (sscanf(buf, "%d", &new_manual_chg) != 1)
+		return -EINVAL;
+
+	manual_chg = new_manual_chg;
+
+	if (manual_chg > 0)
+		msm_otg_set_power(&otg_dev->phy, manual_chg);
+	else if (manual_chg == 0)
+		msm_otg_set_power(&otg_dev->phy, 0);
+	else
+		msm_otg_set_power(&otg_dev->phy, otg_dev->curr_power);
+
+	return count;
+}
+static DEVICE_ATTR(manual_chg, S_IWUSR | S_IRUGO,
+	manual_chg_show, manual_chg_store);
+
 static struct attribute *msm_otg_attrs[] = {
 	&dev_attr_pwr_down.attr,
 	&dev_attr_srp_req.attr,
@@ -2491,6 +2530,7 @@ static struct attribute *msm_otg_attrs[] = {
 #ifdef CONFIG_USB_MSM_OTG_72K_MODE_SWITCH
 	&dev_attr_mode.attr,
 #endif
+	&dev_attr_manual_chg.attr,
 	NULL,
 };
 
