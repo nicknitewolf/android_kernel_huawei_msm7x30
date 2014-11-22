@@ -13,6 +13,7 @@
 #ifndef __LINUX_MSM_CAMERA_H
 #define __LINUX_MSM_CAMERA_H
 
+#ifdef __KERNEL__
 #ifdef MSM_CAMERA_BIONIC
 #include <sys/types.h>
 #endif
@@ -26,6 +27,7 @@
 #endif
 
 #include <linux/msm_ion.h>
+#endif
 
 #define MSM_CAM_IOCTL_MAGIC 'm'
 
