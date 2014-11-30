@@ -329,7 +329,12 @@ late_initcall(hwprops_init);
 
 int hwprops_get_wlanmac(uint8_t *wlanmac)
 {
+	uint8_t cmp_zero[6] = {0};
 	if (!data)
+		return -EINVAL;
+	/* Check if MAC is zero. */
+	if (!memcmp(data->wlan_mac_address, &cmp_zero,
+		sizeof(data->wlan_mac_address)))
 		return -EINVAL;
 	memcpy(wlanmac, data->wlan_mac_address, sizeof(data->wlan_mac_address));
 	return 0;
