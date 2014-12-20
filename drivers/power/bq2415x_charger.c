@@ -774,6 +774,8 @@ static int bq2415x_set_defaults(struct bq2415x_device *bq)
 {
 	bq2415x_reset_chip(bq);
 
+	msleep(500);
+
 	bq2415x_exec_command(bq, BQ2415X_CHARGE_TERMINATION_DISABLE);
 
 	bq2415x_set_default_value(bq, current_limit);
