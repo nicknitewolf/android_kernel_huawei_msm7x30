@@ -537,7 +537,7 @@ static int bq2415x_get_vender_code(struct bq2415x_device *bq)
 }
 
 /* reset all chip registers to default state */
-static void bq2415x_reset_chip(struct bq2415x_device *bq)
+void bq2415x_reset_chip(struct bq2415x_device *bq)
 {
 	bq2415x_i2c_write(bq, BQ2415X_REG_CURRENT, BQ2415X_RESET_CURRENT);
 	bq2415x_i2c_write(bq, BQ2415X_REG_VOLTAGE, BQ2415X_RESET_VOLTAGE);
@@ -772,10 +772,6 @@ static int bq2415x_get_otg_pin_enable(struct bq2415x_device *bq)
 /* set default values of all properties */
 static int bq2415x_set_defaults(struct bq2415x_device *bq)
 {
-	bq2415x_reset_chip(bq);
-
-	msleep(500);
-
 	bq2415x_exec_command(bq, BQ2415X_CHARGE_TERMINATION_DISABLE);
 
 	bq2415x_set_default_value(bq, current_limit);
