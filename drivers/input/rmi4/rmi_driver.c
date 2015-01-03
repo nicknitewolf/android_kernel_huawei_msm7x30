@@ -43,6 +43,11 @@
 
 #define IRQ_DEBUG(data) (IS_ENABLED(CONFIG_RMI4_DEBUG) && data->irq_debug)
 
+#if defined(CONFIG_HAS_EARLYSUSPEND)
+static void rmi_driver_early_suspend(struct early_suspend *h);
+static void rmi_driver_late_resume(struct early_suspend *h);
+#endif
+
 static irqreturn_t rmi_irq_thread(int irq, void *p)
 {
 	struct rmi_transport_dev *xport = p;
@@ -649,7 +654,7 @@ err_put_fn:
 	return error;
 }
 
-#ifdef CONFIG_PM_SLEEP
+#ifdef CONFIG_PM
 static int rmi_driver_suspend(struct device *dev)
 {
 	struct rmi_driver_data *data;
@@ -708,9 +713,31 @@ exit:
 	return retval;
 }
 
-#endif /* CONFIG_PM_SLEEP */
+#if defined(CONFIG_HAS_EARLYSUSPEND)
+static void rmi_driver_early_suspend(struct early_suspend *h)
+{
+	struct rmi_driver_data *data =
+		container_of(h, struct rmi_driver_data, early_suspend);
 
-static SIMPLE_DEV_PM_OPS(rmi_driver_pm, rmi_driver_suspend, rmi_driver_resume);
+	rmi_driver_suspend(&data->rmi_dev->dev);
+}
+
+static void rmi_driver_late_resume(struct early_suspend *h)
+{
+	struct rmi_driver_data *data =
+		container_of(h, struct rmi_driver_data, early_suspend);
+
+	rmi_driver_resume(&data->rmi_dev->dev);
+}
+#endif
+
+static const struct dev_pm_ops rmi_driver_pm_ops = {
+#ifndef CONFIG_HAS_EARLYSUSPEND
+	.suspend	= rmi_driver_suspend,
+	.resume		= rmi_driver_resume,
+#endif
+};
+#endif
 
 static int rmi_driver_remove(struct device *dev)
 {
@@ -855,12 +882,20 @@ static int rmi_driver_probe(struct device *dev)
 		goto err_destroy_functions;
 	}
 
-	if (IS_ENABLED(CONFIG_PM_SLEEP)) {
+	if (IS_ENABLED(CONFIG_PM)) {
 		data->pm_data = pdata->pm_data;
 		data->pre_suspend = pdata->pre_suspend;
 		data->post_suspend = pdata->post_suspend;
 		data->pre_resume = pdata->pre_resume;
 		data->post_resume = pdata->post_resume;
+
+#if defined(CONFIG_HAS_EARLYSUSPEND)
+		data->early_suspend.level = EARLY_SUSPEND_LEVEL_BLANK_SCREEN +
+						RMI_SUSPEND_LEVEL;
+		data->early_suspend.suspend = rmi_driver_early_suspend;
+		data->early_suspend.resume = rmi_driver_late_resume;
+		register_early_suspend(&data->early_suspend);
+#endif
 
 		mutex_init(&data->suspend_mutex);
 	}
@@ -931,7 +966,7 @@ static struct rmi_driver rmi_physical_driver = {
 		.owner	= THIS_MODULE,
 		.name	= "rmi_physical",
 		.bus	= &rmi_bus_type,
-		.pm	= &rmi_driver_pm,
+		.pm	= &rmi_driver_pm_ops,
 		.probe = rmi_driver_probe,
 		.remove = rmi_driver_remove,
 	},

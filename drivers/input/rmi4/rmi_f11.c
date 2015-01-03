@@ -524,6 +524,10 @@ struct f11_2d_sensor {
 	u8 report_rel;
 	u8 x_mm;
 	u8 y_mm;
+
+#if defined(CONFIG_HAS_EARLYSUSPEND)
+	struct early_suspend early_suspend;
+#endif
 };
 
 /** Data pertaining to F11 in general.  For per-sensor data, see struct
@@ -562,6 +566,10 @@ enum f11_finger_state {
 
 /** F11_INACCURATE state is overloaded to indicate pen present. */
 #define F11_PEN F11_INACCURATE
+
+#if defined(CONFIG_HAS_EARLYSUSPEND)
+static void rmi_f11_late_resume(struct early_suspend *h);
+#endif
 
 static int rmi_f11_get_tool_type(struct f11_2d_sensor *sensor,
 				 enum f11_finger_state finger_state)
@@ -1366,6 +1374,13 @@ static int rmi_f11_initialize(struct rmi_function *fn)
 
 	mutex_init(&f11->dev_controls_mutex);
 
+#if defined(CONFIG_HAS_EARLYSUSPEND)
+	sensor->early_suspend.level = EARLY_SUSPEND_LEVEL_BLANK_SCREEN +
+						RMI_SUSPEND_LEVEL;
+	sensor->early_suspend.resume = rmi_f11_late_resume;
+	register_early_suspend(&sensor->early_suspend);
+#endif
+
 	dev_set_drvdata(&fn->dev, f11);
 
 	return 0;
@@ -1476,7 +1491,7 @@ static int rmi_f11_attention(struct rmi_function *fn, unsigned long *irq_bits)
 	return 0;
 }
 
-#ifdef CONFIG_PM_SLEEP
+#ifdef CONFIG_PM
 static int rmi_f11_resume(struct device *dev)
 {
 	struct rmi_function *fn = to_rmi_function(dev);
@@ -1499,9 +1514,23 @@ static int rmi_f11_resume(struct device *dev)
 
 	return 0;
 }
-#endif /* CONFIG_PM_SLEEP */
 
-static SIMPLE_DEV_PM_OPS(rmi_f11_pm_ops, NULL, rmi_f11_resume);
+#if defined(CONFIG_HAS_EARLYSUSPEND)
+static void rmi_f11_late_resume(struct early_suspend *h)
+{
+	struct f11_2d_sensor *sensor =
+		container_of(h, struct f11_2d_sensor, early_suspend);
+
+	rmi_f11_resume(&sensor->fn->dev);
+}
+#endif
+
+static const struct dev_pm_ops rmi_f11_pm_ops = {
+#ifndef CONFIG_HAS_EARLYSUSPEND
+	.resume		= rmi_f11_resume,
+#endif
+};
+#endif
 
 static int rmi_f11_probe(struct rmi_function *fn)
 {

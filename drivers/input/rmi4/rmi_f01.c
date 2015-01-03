@@ -128,13 +128,24 @@ struct f01_data {
 	u16 wakeup_threshold_addr;
 	u16 doze_holdoff_addr;
 
-#ifdef CONFIG_PM_SLEEP
+#ifdef CONFIG_PM
 	bool suspended;
 	bool old_nosleep;
 #endif
 
 	unsigned int num_of_irq_regs;
+
+	struct rmi_function *fn;
+
+#if defined(CONFIG_HAS_EARLYSUSPEND)
+	struct early_suspend early_suspend;
+#endif
 };
+
+#if defined(CONFIG_HAS_EARLYSUSPEND)
+static void rmi_f01_early_suspend(struct early_suspend *h);
+static void rmi_f01_late_resume(struct early_suspend *h);
+#endif
 
 static int rmi_f01_read_properties(struct rmi_device *rmi_dev,
 				   u16 query_base_addr,
@@ -358,6 +369,16 @@ static int rmi_f01_probe(struct rmi_function *fn)
 		return -EINVAL;
 	}
 
+	f01->fn = fn;
+
+#if defined(CONFIG_HAS_EARLYSUSPEND)
+	f01->early_suspend.level = EARLY_SUSPEND_LEVEL_BLANK_SCREEN +
+						RMI_SUSPEND_LEVEL;
+	f01->early_suspend.suspend = rmi_f01_early_suspend;
+	f01->early_suspend.resume = rmi_f01_late_resume;
+	register_early_suspend(&f01->early_suspend);
+#endif
+
 	dev_set_drvdata(&fn->dev, f01);
 
 	return 0;
@@ -410,7 +431,7 @@ static int rmi_f01_config(struct rmi_function *fn)
 	return 0;
 }
 
-#ifdef CONFIG_PM_SLEEP
+#ifdef CONFIG_PM
 static int rmi_f01_suspend(struct device *dev)
 {
 	struct rmi_function *fn = to_rmi_function(dev);
@@ -460,9 +481,30 @@ static int rmi_f01_resume(struct device *dev)
 
 	return 0;
 }
-#endif /* CONFIG_PM_SLEEP */
 
-static SIMPLE_DEV_PM_OPS(rmi_f01_pm_ops, rmi_f01_suspend, rmi_f01_resume);
+#if defined(CONFIG_HAS_EARLYSUSPEND)
+static void rmi_f01_early_suspend(struct early_suspend *h)
+{
+	struct f01_data *data = container_of(h, struct f01_data, early_suspend);
+
+	rmi_f01_suspend(&data->fn->dev);
+}
+
+static void rmi_f01_late_resume(struct early_suspend *h)
+{
+	struct f01_data *data = container_of(h, struct f01_data, early_suspend);
+
+	rmi_f01_resume(&data->fn->dev);
+}
+#endif
+
+static const struct dev_pm_ops rmi_f01_pm_ops = {
+#ifndef CONFIG_HAS_EARLYSUSPEND
+	.suspend	= rmi_f01_suspend,
+	.resume		= rmi_f01_resume,
+#endif
+};
+#endif
 
 static int rmi_f01_attention(struct rmi_function *fn,
 			     unsigned long *irq_bits)

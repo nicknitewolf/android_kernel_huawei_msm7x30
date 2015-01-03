@@ -14,6 +14,11 @@
 #include <linux/hrtimer.h>
 #include <linux/ktime.h>
 #include "rmi_bus.h"
+#if defined(CONFIG_HAS_EARLYSUSPEND)
+#include <linux/earlysuspend.h>
+/* Early-suspend level */
+#define RMI_SUSPEND_LEVEL 1
+#endif
 
 #define RMI_DRIVER_VERSION "1.6"
 
@@ -59,7 +64,7 @@ struct rmi_driver_data {
 	u8 bsr;
 
 	bool enabled;
-#ifdef CONFIG_PM_SLEEP
+#ifdef CONFIG_PM
 	bool suspended;
 	struct mutex suspend_mutex;
 
@@ -68,6 +73,10 @@ struct rmi_driver_data {
 	int (*post_suspend) (const void *pm_data);
 	int (*pre_resume) (const void *pm_data);
 	int (*post_resume) (const void *pm_data);
+
+#if defined(CONFIG_HAS_EARLYSUSPEND)
+	struct early_suspend early_suspend;
+#endif
 #endif
 
 #ifdef CONFIG_RMI4_DEBUG
