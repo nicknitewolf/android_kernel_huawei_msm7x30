@@ -702,7 +702,7 @@ static struct platform_device msm_camera_sensor_mt9e013 = {
 
 #ifdef CONFIG_MT9V114
 static struct msm_camera_sensor_platform_info sensor_board_info_mt9v114 = {
-	.mount_angle = 180
+	.mount_angle = 270
 };
 
 static struct msm_camera_sensor_flash_data flash_mt9v114 = {
