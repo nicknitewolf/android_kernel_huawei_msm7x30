@@ -19,6 +19,7 @@
 #include <linux/stat.h>
 #include <linux/string.h>
 #include <mach/rpc_nv.h>
+#include <asm/processor.h>
 
 #define SERIALNO_SIZE	17
 #define MACADDR_SIZE	6
@@ -125,6 +126,36 @@ static int __init hwprops_fixup_serialno(void)
 		COMMAND_LINE_SIZE);
 	strlcat(saved_command_line, data->serialno, COMMAND_LINE_SIZE);
 
+	return 0;
+}
+
+static char *replace_str(char *str, char *orig, char *rep)
+{
+	static char buffer[4096];
+	char *p;
+
+	/* Is 'orig' even in 'str'? */
+	if(!(p = strstr(str, orig)))
+		return str;
+
+	/* Copy characters from 'str' start to 'orig' st$ */
+	strncpy(buffer, str, p-str);
+	buffer[p-str] = '\0';
+
+	sprintf(buffer+(p-str), "%s%s", rep, p+strlen(orig));
+
+	return buffer;
+}
+
+static int __init hwprops_fixup_charger(void)
+{
+	/* Bootloader boots recovery when phone boots due to charger. */
+	if (boot_reason == 0x20 || boot_reason == 0x40) {
+		saved_command_line = replace_str(saved_command_line,
+			"androidboot.mode=recovery","androidboot.mode=charger");
+		saved_command_line = replace_str(saved_command_line,
+			"androidboot.mode=user","androidboot.mode=charger");
+	}
 	return 0;
 }
 
@@ -301,6 +332,12 @@ static int __init hwprops_init(void)
 	ret = hwprops_fixup_serialno();
 	if (ret) {
 		pr_err("%s: failed to fixup serialno ret=%d\n", __func__, ret);
+		goto err;
+	}
+
+	ret = hwprops_fixup_charger();
+	if (ret) {
+		pr_err("%s: failed to fixup charger ret=%d\n", __func__, ret);
 		goto err;
 	}
 
