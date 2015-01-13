@@ -139,6 +139,9 @@ static int huawei_bat_notify_rpc(uint32_t consumer,
 		u32 state;
 	} req;
 
+	if (!data || IS_ERR_OR_NULL(data->pm_ep))
+		return -EPERM;
+
 	req.consumer = cpu_to_be32(consumer);
 	req.state = cpu_to_be32(state);
 
