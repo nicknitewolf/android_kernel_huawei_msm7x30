@@ -1,4 +1,4 @@
-/* drivers/input/misc/akm8975.c - akm8975 compass driver
+/* drivers/misc/akm8975.c - akm8975 compass driver
  *
  * Copyright (C) 2007-2008 HTC Corporation.
  * Author: Hou-Kun Chen <houkun.chen@gmail.com>
@@ -822,7 +822,7 @@ static ssize_t akm_compass_sysfs_enable_store(
 	if (0 == count)
 		return 0;
 
-	if (strict_strtol(buf, AKM_BASE_NUM, &en))
+	if (kstrtol(buf, AKM_BASE_NUM, &en))
 		return -EINVAL;
 
 	en = en ? 1 : 0;
@@ -906,7 +906,7 @@ static ssize_t akm_compass_sysfs_delay_store(
 	if (0 == count)
 		return 0;
 
-	if (strict_strtoll(buf, AKM_BASE_NUM, &val))
+	if (kstrtoll(buf, AKM_BASE_NUM, &val))
 		return -EINVAL;
 
 	mutex_lock(&akm->val_mutex);
@@ -1006,7 +1006,7 @@ static ssize_t akm_sysfs_mode_store(
 	if (0 == count)
 		return 0;
 
-	if (strict_strtol(buf, AKM_BASE_NUM, &mode))
+	if (kstrtol(buf, AKM_BASE_NUM, &mode))
 		return -EINVAL;
 
 	if (AKECS_SetMode(akm, (uint8_t)mode) < 0)
@@ -1542,6 +1542,13 @@ static const struct i2c_device_id akm_compass_id[] = {
 	{AKM_I2C_NAME, 0 },
 	{ }
 };
+MODULE_DEVICE_TABLE(i2c, akm_compass_id);
+
+static const struct of_device_id akm_of_match[] = {
+	{ .compatible = "akm,akm8975", },
+	{ },
+};
+MODULE_DEVICE_TABLE(of, akm_of_match);
 
 static const struct dev_pm_ops akm_compass_pm_ops = {
 	.suspend	= akm_compass_suspend,
@@ -1554,24 +1561,13 @@ static struct i2c_driver akm_compass_driver = {
 	.id_table	= akm_compass_id,
 	.driver = {
 		.name	= AKM_I2C_NAME,
-		.pm		= &akm_compass_pm_ops,
+		.owner  = THIS_MODULE,
+		.pm     = &akm_compass_pm_ops,
+		.of_match_table = akm_of_match,
 	},
 };
 
-static int __init akm_compass_init(void)
-{
-	pr_info("AKM compass driver: initialize.");
-	return i2c_add_driver(&akm_compass_driver);
-}
-
-static void __exit akm_compass_exit(void)
-{
-	pr_info("AKM compass driver: release.");
-	i2c_del_driver(&akm_compass_driver);
-}
-
-module_init(akm_compass_init);
-module_exit(akm_compass_exit);
+module_i2c_driver(akm_compass_driver);
 
 MODULE_AUTHOR("viral wang <viral_wang@htc.com>");
 MODULE_DESCRIPTION("AKM compass driver");
