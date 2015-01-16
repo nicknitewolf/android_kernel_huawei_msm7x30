@@ -1465,6 +1465,31 @@ static int rmi_f11_config(struct rmi_function *fn)
 	if (rc < 0)
 		return rc;
 
+	if (sensor->axis_align.delta_x_threshold) {
+		f11->dev_controls.ctrl0_9[RMI_F11_DELTA_X_THRESHOLD] =
+			sensor->axis_align.delta_x_threshold;
+		rc = rmi_write_block(fn->rmi_dev,
+				f11->dev_controls.ctrl0_9_address,
+				f11->dev_controls.ctrl0_9,
+				RMI_F11_CTRL_REG_COUNT);
+		if (rc < 0)
+			dev_warn(&fn->dev, "Failed to write to delta_x_threshold. Code: %d.\n",
+				rc);
+
+	}
+
+	if (sensor->axis_align.delta_y_threshold) {
+		f11->dev_controls.ctrl0_9[RMI_F11_DELTA_Y_THRESHOLD] =
+			sensor->axis_align.delta_y_threshold;
+		rc = rmi_write_block(fn->rmi_dev,
+				f11->dev_controls.ctrl0_9_address,
+				f11->dev_controls.ctrl0_9,
+				RMI_F11_CTRL_REG_COUNT);
+		if (rc < 0)
+			dev_warn(&fn->dev, "Failed to write to delta_y_threshold. Code: %d.\n",
+				rc);
+	}
+
 	return 0;
 }
 
