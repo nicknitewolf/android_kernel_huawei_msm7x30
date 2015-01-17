@@ -12,7 +12,7 @@
  *
  */
 
-#include <asm-generic/setup.h>
+#include <asm/setup.h>
 #include <linux/export.h>
 #include <linux/init.h>
 #include <linux/slab.h>
@@ -147,10 +147,25 @@ static char *replace_str(char *str, char *orig, char *rep)
 	return buffer;
 }
 
+#if defined(CONFIG_MACH_HUAWEI_U8800)
+#define ATAG_CHARGE_FLAG  0x4d534D77
+#elif defined(CONFIG_MACH_HUAWEI_U8860)
+#define ATAG_CHARGE_FLAG  0x4d534D78
+#endif
+
+static int charge_tag = 0;
+static int __init parse_tag_charge(const struct tag *tags)
+{
+	struct tag *t = (struct tag *)tags;
+	charge_tag = t->u.revision.rev;
+	return 0;
+}
+__tagtable(ATAG_CHARGE_FLAG, parse_tag_charge);
+
 static int __init hwprops_fixup_charger(void)
 {
 	/* Bootloader boots recovery when phone boots due to charger. */
-	if (boot_reason == 0x20 || boot_reason == 0x40) {
+	if (charge_tag) {
 		saved_command_line = replace_str(saved_command_line,
 			"androidboot.mode=recovery","androidboot.mode=charger");
 		saved_command_line = replace_str(saved_command_line,
