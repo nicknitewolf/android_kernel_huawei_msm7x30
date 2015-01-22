@@ -360,7 +360,7 @@ static struct pm8xxx_led_config pm8xxx_led_configs[] = {
 		.mode = PM8XXX_LED_MODE_PWM1,
 		.max_current = 300,
 		.pwm_channel = 0,
-		.pwm_period_us = PM8XXX_LED_PWM_PERIOD,
+		.pwm_period_us = 1500,
 	},
 };
 
