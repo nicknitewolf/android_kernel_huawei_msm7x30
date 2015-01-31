@@ -1,7 +1,7 @@
 /*
  * TPA2028D1 Audio Amplifier Driver
  *
- * Copyright (C) 2014  Rudolf Tammekivi <rtammekivi@gmail.com>
+ * Copyright (C) 2015  Rudolf Tammekivi <rtammekivi@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -447,9 +447,12 @@ static int tpa2028d1_power(struct tpa2028d1_data *data, bool enable)
 
 		gpio_set_value(data->pdata->amp_en_gpio, enable ? 1 : 0);
 
-		/* Need to wait at least 15ms before I2C transactions. */
-		if (enable)
+		if (enable) {
+			/* Need to wait at least 15ms before I2C transactions.
+			 * Write config after enabling amplifier. */
 			msleep(15);
+			tpa2028d1_write_config(data);
+		}
 	}
 
 	return 0;
@@ -463,8 +466,6 @@ static int tpa2028d1_cb_enable(struct tpa2028d1_callbacks *cb, bool enable)
 	dev_vdbg(&data->client->dev, "%s %d\n", __func__, enable);
 
 	tpa2028d1_power(data, enable);
-	if (enable)
-		tpa2028d1_write_config(data);
 
 	return 0;
 }
