@@ -29,7 +29,7 @@ static int mddi_nt35560_panel_on(struct platform_device *pdev)
 	mddi_host_client_cnt_reset();
 
 	mddi_queue_register_write(EXIT_SLEEP_MODE, 0, TRUE, 0);
-	mddi_wait(125);
+	mddi_wait(15);
 
 	return 0;
 }
@@ -37,7 +37,6 @@ static int mddi_nt35560_panel_on(struct platform_device *pdev)
 static int mddi_nt35560_panel_off(struct platform_device *pdev)
 {
 	mddi_queue_register_write(ENTER_SLEEP_MODE, 0, TRUE, 0);
-	mddi_wait(10);
 
 	return 0;
 }
