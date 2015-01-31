@@ -535,7 +535,7 @@ static ssize_t tpa2028d1_sysfs_status_show(struct device *dev,
 		command = TPA2028D1_THERMAL_STATUS;
 	else if (!strcmp(attr->attr.name, "ng_status"))
 		command = TPA2028D1_NG_STATUS;
-	else if (!strcmp(attr->attr.name, "out_lim_status"))
+	else if (!strcmp(attr->attr.name, "out_lim_disabled"))
 		command = TPA2028D1_AGC_OUTLIM_STATUS;
 	else {
 		status = -EINVAL;
@@ -571,9 +571,9 @@ static ssize_t tpa2028d1_sysfs_status_store(struct device *dev,
 		command = TPA2028D1_THERMAL_CLEAR;
 	else if (!strcmp(attr->attr.name, "ng_status"))
 		command = val ? TPA2028D1_NG_ENABLE : TPA2028D1_NG_DISABLE;
-	else if (!strcmp(attr->attr.name, "out_lim_status"))
-		command = val ? TPA2028D1_AGC_OUTLIM_ENABLE :
-			TPA2028D1_AGC_OUTLIM_DISABLE;
+	else if (!strcmp(attr->attr.name, "out_lim_disabled"))
+		command = val ? TPA2028D1_AGC_OUTLIM_DISABLE :
+			TPA2028D1_AGC_OUTLIM_ENABLE;
 	else
 		return -EINVAL;
 
@@ -676,7 +676,7 @@ static DEVICE_ATTR(thermal_status, S_IRUGO | S_IWUSR,
 	tpa2028d1_sysfs_status_show, tpa2028d1_sysfs_status_store);
 static DEVICE_ATTR(ng_status, S_IRUGO | S_IWUSR,
 	tpa2028d1_sysfs_status_show, tpa2028d1_sysfs_status_store);
-static DEVICE_ATTR(out_lim_status, S_IRUGO | S_IWUSR,
+static DEVICE_ATTR(out_lim_disabled, S_IRUGO | S_IWUSR,
 	tpa2028d1_sysfs_status_show, tpa2028d1_sysfs_status_store);
 
 static DEVICE_ATTR(atk_time, S_IRUGO | S_IWUSR,
@@ -704,7 +704,7 @@ static struct attribute *tpa2028d1_sysfs_attributes[] = {
 	&dev_attr_fault_status.attr,
 	&dev_attr_thermal_status.attr,
 	&dev_attr_ng_status.attr,
-	&dev_attr_out_lim_status.attr,
+	&dev_attr_out_lim_disabled.attr,
 
 	&dev_attr_atk_time.attr,
 	&dev_attr_rel_time.attr,
