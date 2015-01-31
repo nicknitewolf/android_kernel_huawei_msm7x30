@@ -86,7 +86,7 @@ static struct clock_state drv_state = { 0 };
 static struct clkctl_acpu_speed *backup_s;
 
 static struct pll pll2_tbl[] = {
-#if defined(CONFIG_MACH_HUAWEI_U8800)
+#if defined(CONFIG_MACH_HUAWEI_U8800) || defined(CONFIG_MACH_HUAWEI_U8860)
 	{  25, 0, 1, 0 }, /* 480 MHz */
 	{  31, 1, 4, 0 }, /* 600 MHz */
 	{  42, 0, 1, 0 }, /* 806 MHz */
@@ -126,7 +126,7 @@ static struct clk *acpuclk_sources[MAX_SOURCE];
  * know all the h/w requirements.
  */
 static struct clkctl_acpu_speed acpu_freq_tbl[] = {
-#if defined(CONFIG_MACH_HUAWEI_U8800)
+#if defined(CONFIG_MACH_HUAWEI_U8800) || defined(CONFIG_MACH_HUAWEI_U8860)
 	{ 0, 24576,  LPXO,     0, 0,  30720000,  900, VDD_RAW(900) },
 	{ 0, 61440,  PLL_3,    5, 11, 61440000,  900, VDD_RAW(900) },
 	{ 1, 122880, PLL_3,    5, 5,  61440000,  900, VDD_RAW(900) },
