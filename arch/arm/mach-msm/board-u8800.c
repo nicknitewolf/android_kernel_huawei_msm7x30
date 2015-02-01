@@ -1984,54 +1984,17 @@ static struct msm_pm_boot_platform_data msm_pm_boot_pdata __initdata = {
 	.v_addr = (uint32_t *)PAGE_OFFSET,
 };
 
-#ifdef CONFIG_CHARGER_BQ2415X
-static struct bq2415x_callbacks *bq24152_callbacks = NULL;
-
-static void bq24152_status_changed(enum bq2415x_status status)
-{
-	if (status == BQ2415X_STATUS_CHARGE_DONE)
-		pr_info("board-u8800: Battery Charged\n");
-	else if (status == BQ2415X_STATUS_CHARGING)
-		pr_info("board-u8800: Battery Charging\n");
-}
-
-static void bq24152_register_callbacks(struct bq2415x_callbacks *callbacks)
-{
-	bq24152_callbacks = callbacks;
-}
-
-static void bq24152_unregister_callbacks(void)
-{
-	bq24152_callbacks = NULL;
-}
-
-static struct bq2415x_platform_data bq24152_platform_data = {
-	.current_limit = 100, /* mA */
-	.weak_battery_voltage = 3400, /* mV */
-	.battery_regulation_voltage = 4200, /* mV */
-	.charge_current = 950, /* mA */
-	.termination_current = 100, /* mA */
-	.resistor_sense = 68, /* m ohm */
-	.status_changed = bq24152_status_changed,
-	.register_callbacks = bq24152_register_callbacks,
-	.unregister_callbacks = bq24152_unregister_callbacks,
-};
-#endif
-
 #ifdef CONFIG_USB_EHCI_MSM_72K
 static void msm_hsusb_vbus_power(unsigned phy_info, int on)
 {
-#ifdef CONFIG_CHARGER_BQ2415X
-	if (!bq24152_callbacks)
-		return;
-
-	if (on)
-		bq24152_callbacks->set_mode(bq24152_callbacks,
-			BQ2415X_MODE_BOOST);
-	else
-		bq24152_callbacks->set_mode(bq24152_callbacks,
-			BQ2415X_MODE_OFF);
-#endif
+	static bool status = false;
+	if (on && !status) {
+		bq2415x_set_mode(BQ2415X_MODE_BOOST_ON);
+		status = true;
+	} else if (!on && status) {
+		bq2415x_set_mode(BQ2415X_MODE_BOOST_OFF);
+		status = false;
+	}
 }
 
 static struct msm_usb_host_platform_data msm_usb_host_pdata = {
@@ -2045,28 +2008,11 @@ static struct msm_usb_host_platform_data msm_usb_host_pdata = {
 static void msm_hsusb_chg_connected(enum chg_type chgtype)
 {
 	huawei_bat_charger_connected(chgtype);
-
-#ifdef CONFIG_CHARGER_BQ2415X
-	if (!bq24152_callbacks)
-		return;
-
-	if (chgtype != USB_CHG_TYPE__INVALID)
-		bq24152_callbacks->set_mode(bq24152_callbacks,
-			BQ2415X_MODE_CHARGE);
-	else
-		bq24152_callbacks->set_mode(bq24152_callbacks,
-			BQ2415X_MODE_OFF);
-#endif
 }
 
 static void msm_hsusb_chg_vbus_draw(unsigned ma)
 {
 	huawei_bat_charger_draw(ma);
-
-#ifdef CONFIG_CHARGER_BQ2415X
-	if (bq24152_callbacks)
-		bq24152_callbacks->set_current_limit(bq24152_callbacks, ma);
-#endif
 }
 
 static struct regulator *vreg_3p3;
@@ -2937,12 +2883,9 @@ static struct platform_device i2c_dcdc_device = {
 };
 
 static struct i2c_board_info i2c_dcdc_board_info[] = {
-#ifdef CONFIG_CHARGER_BQ2415X
 	{
 		I2C_BOARD_INFO("bq24152", 0x6b),
-		.platform_data = &bq24152_platform_data,
 	}
-#endif
 };
 
 static char *msm_adc_device_names[] = {
