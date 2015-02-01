@@ -1989,11 +1989,13 @@ static void msm_hsusb_vbus_power(unsigned phy_info, int on)
 {
 	static bool status = false;
 	if (on && !status) {
+		i2c_gpio_suspend_set(false);
 		bq2415x_set_mode(BQ2415X_MODE_BOOST_ON);
 		status = true;
 	} else if (!on && status) {
 		bq2415x_set_mode(BQ2415X_MODE_BOOST_OFF);
 		status = false;
+		i2c_gpio_suspend_set(true);
 	}
 }
 
@@ -2868,12 +2870,33 @@ static struct platform_device msm_bt_power_device = {
 };
 #endif
 
+static struct msm_gpio i2c_dcdc_gpio_config[] = {
+	{ GPIO_CFG(149, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
+		"i2c_scl" },
+	{ GPIO_CFG(150, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
+		"i2c_sda" },
+};
+
+static int i2c_gpio_hw_config(bool on)
+{
+	int i, rc = 0;
+
+	for (i = 0 ; i < ARRAY_SIZE(i2c_dcdc_gpio_config); i++)
+		rc = gpio_tlmm_config(i2c_dcdc_gpio_config[i].gpio_cfg,
+				on ? GPIO_CFG_ENABLE : GPIO_CFG_DISABLE);
+		if (rc)
+			pr_err("I2C-gpio tlmm config failed\n");
+
+	return rc;
+}
+
 static struct i2c_gpio_platform_data i2c_dcdc_pdata = {
 	.scl_pin = 149,
 	.sda_pin = 150,
 	.udelay = 5, /* 100 Khz */
 	.sda_is_open_drain = 1,
 	.scl_is_open_drain = 1,
+	.hw_config = i2c_gpio_hw_config,
 };
 
 static struct platform_device i2c_dcdc_device = {
