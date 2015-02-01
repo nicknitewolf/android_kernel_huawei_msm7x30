@@ -3864,6 +3864,8 @@ static int __init i2c_touch_init(void)
 #endif
 	}
 
+	i2c_put_adapter(touch_i2c_adapter);
+
 	virtual_key_setup();
 
 	return 0;
