@@ -21,52 +21,17 @@
 #ifndef BQ2415X_CHARGER_H
 #define BQ2415X_CHARGER_H
 
-/*
- * This is platform data for bq2415x chip. It contains default board
- * voltages and currents which can be also later configured via sysfs. If
- * value is -1 then default chip value (specified in datasheet) will be
- * used.
- *
- * Value resistor_sense is needed for for configuring charge and
- * termination current. It it is less or equal to zero, configuring charge
- * and termination current will not be possible.
- *
- * Callback register/unregister is used to modify the charge current & mode,
- * as described in bq2415x_mode.
- *
- */
-
-enum bq2415x_status {
-	BQ2415X_STATUS_READY,		/* ready */
-	BQ2415X_STATUS_CHARGING,	/* charge in progress */
-	BQ2415X_STATUS_CHARGE_DONE,	/* charge done */
-	BQ2415X_STATUS_FAULT,		/* fault */
-};
-
 enum bq2415x_mode {
-	BQ2415X_MODE_OFF,
-	BQ2415X_MODE_CHARGE,
-	BQ2415X_MODE_BOOST,
+	BQ2415X_MODE_BOOST_OFF,
+	BQ2415X_MODE_BOOST_ON,
 };
 
-struct bq2415x_callbacks {
-	void (*set_current_limit)(struct bq2415x_callbacks *ptr, int mA);
-	void (*set_mode)
-		(struct bq2415x_callbacks *ptr, enum bq2415x_mode mode);
-};
-
-struct bq2415x_platform_data {
-	int current_limit;		/* mA */
-	int weak_battery_voltage;	/* mV */
-	int battery_regulation_voltage;	/* mV */
-	int charge_current;		/* mA */
-	int termination_current;	/* mA */
-	int resistor_sense;		/* m ohm */
-	bool stat_pin_enable;
-	bool otg_pin_enable;
-	void (*status_changed)(enum bq2415x_status status);
-	void (*register_callbacks)(struct bq2415x_callbacks *ptr);
-	void (*unregister_callbacks)(void);
-};
-
+#ifdef CONFIG_CHARGER_BQ2415X
+int bq2415x_set_mode(enum bq2415x_mode mode);
+#else
+static inline int bq2415x_set_mode(enum bq2415x_mode mode)
+{
+	return 0;
+}
+#endif
 #endif
