@@ -23,6 +23,7 @@
 #define ENTER_SLEEP_MODE			0x1000
 #define EXIT_SLEEP_MODE				0x1100
 #define WRDISBV					0x5100
+#define WRCTRLD					0x5500
 
 static int mddi_nt35560_panel_on(struct platform_device *pdev)
 {
@@ -57,6 +58,9 @@ static int __devinit nt35560_probe(struct platform_device *pdev)
 {
 	if (pdev->id == 0)
 		return 0;
+
+	/* CABC_COND[1:0] = 0 */
+	mddi_queue_register_write(WRCTRLD, 0, TRUE, 0);
 
 	msm_fb_add_device(pdev);
 
