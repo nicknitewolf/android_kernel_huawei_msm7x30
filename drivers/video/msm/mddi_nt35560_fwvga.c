@@ -25,6 +25,8 @@
 #define WRDISBV					0x5100
 #define WRCTRLD					0x5500
 
+static bool cabc_enabled = true;
+
 static int mddi_nt35560_panel_on(struct platform_device *pdev)
 {
 	mddi_host_client_cnt_reset();
@@ -54,15 +56,89 @@ static void mddi_nt35560_panel_set_backlight(struct msm_fb_data_type *mfd)
 #endif
 }
 
+static ssize_t mddi_nt35560_sysfs_cabc_show(struct kobject *kobj,
+	struct kobj_attribute *attr, char *buf)
+{
+	return sprintf(buf, "%d\n", cabc_enabled);
+}
+
+static ssize_t mddi_nt35560_sysfs_cabc_store(struct kobject *kobj,
+	struct kobj_attribute *attr, const char *buf, size_t count)
+{
+	int ret;
+	int cabc_status = 0;
+
+	ret = kstrtoint(buf, 0, &cabc_status);
+	if (ret)
+		return ret;
+
+	if (cabc_status) {
+		/* CABC_COND[1:0] = 1 */
+		mddi_queue_register_write(WRCTRLD, 1, TRUE, 0);
+	} else {
+		/* CABC_COND[1:0] = 0 */
+		mddi_queue_register_write(WRCTRLD, 0, TRUE, 0);
+	}
+
+	cabc_enabled = !!cabc_status;
+
+	return count;
+}
+
+static struct kobj_attribute mddi_nt35560_sysfs_cabc_attr = {
+	.attr = {
+		.name = "cabc",
+		.mode = S_IRUGO | S_IWUSR,
+	},
+	.show = mddi_nt35560_sysfs_cabc_show,
+	.store = mddi_nt35560_sysfs_cabc_store,
+};
+
+static struct attribute *mddi_nt35560_sysfs_attrs[] = {
+	&mddi_nt35560_sysfs_cabc_attr.attr,
+	NULL,
+};
+
+static struct attribute_group mddi_nt35560_sysfs_attr_group = {
+	.attrs = mddi_nt35560_sysfs_attrs,
+};
+
 static int __devinit nt35560_probe(struct platform_device *pdev)
 {
+	int ret;
+	struct platform_device *pthisdev = NULL;
+	struct msm_fb_data_type *mfd = NULL;
+
 	if (pdev->id == 0)
 		return 0;
 
 	/* CABC_COND[1:0] = 0 */
 	mddi_queue_register_write(WRCTRLD, 0, TRUE, 0);
+	cabc_enabled = false;
 
-	msm_fb_add_device(pdev);
+	pthisdev = msm_fb_add_device(pdev);
+
+	mfd = platform_get_drvdata(pthisdev);
+	if (!mfd) {
+		pr_err("%s: mfd not found\n", __func__);
+		return -ENODEV;
+	}
+	if (!mfd->fbi) {
+		pr_err("%s: mfd->fbi not found\n", __func__);
+		return -ENODEV;
+	}
+	if (!mfd->fbi->dev) {
+		pr_err("%s: mfd->fbi->dev not found\n", __func__);
+		return -ENODEV;
+	}
+
+	ret = sysfs_create_group(&mfd->fbi->dev->kobj,
+		&mddi_nt35560_sysfs_attr_group);
+	if (ret) {
+		pr_err("%s: sysfs group creation failed, ret=%d\n",
+			__func__, ret);
+		return ret;
+	}
 
 	return 0;
 }
