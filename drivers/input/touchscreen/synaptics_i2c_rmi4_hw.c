@@ -197,6 +197,11 @@ static int synaptics_i2c_rmi4_read_pdt(struct synaptics_i2c_rmi4 *ts)
 	__u8 query[14];
 	__u8 *egr;
 
+	/* check whether rmi page is 0 */
+	ret = i2c_smbus_write_byte_data(ts->client, 0xff, 0x00);
+	if(ret < 0)
+		pr_warn("%s: Failed to set RMI page ret=%d\n", __func__, ret);
+
 	fd_i2c_msg[0].addr = ts->client->addr;
 	fd_i2c_msg[0].flags = 0;
 	fd_i2c_msg[0].buf = &fd_reg;
@@ -1294,6 +1299,10 @@ static int RMI4_program_firmware(struct i2c_client *client,
 		pr_err("%s: Failed to erase firmware\n", __func__);
 		return -1;
 	}
+
+	// wait for the erase command finished
+	mdelay(1000);
+
 	RMI4_wait_attn(client, 300);
 
 	// check status
