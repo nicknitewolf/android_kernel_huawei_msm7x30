@@ -137,6 +137,7 @@ struct synaptics_function_descriptor {
 #define FD_BYTE_COUNT 6
 
 static struct synaptics_function_descriptor fd_01;
+static struct synaptics_function_descriptor fd_11;
 static struct synaptics_function_descriptor fd_34;
 
 
@@ -266,6 +267,11 @@ static int synaptics_i2c_rmi4_read_pdt(struct synaptics_i2c_rmi4 *ts)
 			data_length = 0;
 			break;
 		case 0x11: /* 2D */
+			fd_11.queryBase = fd.queryBase;
+			fd_11.dataBase = fd.dataBase;
+			fd_11.commandBase = fd.commandBase;
+			fd_11.controlBase = fd.controlBase;
+
 			ts->hasF11 = true;
 
 			ts->f11.data_offset = fd.dataBase;
