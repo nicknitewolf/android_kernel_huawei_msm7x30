@@ -790,11 +790,10 @@ static int synaptics_i2c_rmi4_probe(
 
 #ifdef CONFIG_SYNAPTICS_UPDATE_RMI_TS_FIRMWARE
 	g_client = client;
-	for (i = 0; i < 3; i++)
-	{
-		ret = ts_firmware_file();
-		if (!ret)
-			break;
+	ret = ts_firmware_file();
+	if (ret) {
+		pr_err("%s: Failed to initialize fw update ret=%d\n", __func__, ret);
+		ret = 0; /* Not a fatal error. */
 	}
 #endif /* CONFIG_SYNAPTICS_UPDATE_RMI_TS_FIRMWARE */
 
