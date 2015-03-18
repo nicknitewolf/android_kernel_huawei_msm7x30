@@ -285,7 +285,7 @@ static int synaptics_i2c_rmi4_read_pdt(struct synaptics_i2c_rmi4 *ts)
 				ts->f11.points_supported = 10;
 
 			ts->f11_fingers = kcalloc(ts->f11.points_supported,
-				sizeof(*ts->f11_fingers), 0);
+				sizeof(*ts->f11_fingers), GFP_KERNEL);
 
 			ts->f11_has_gestures = (query[1] >> 5) & 1;
 			ts->f11_has_relative = (query[1] >> 3) & 1;
@@ -398,7 +398,7 @@ pdt_next_iter:
 	ts->f19.data_offset -= ts->data_reg;
 	ts->f30.data_offset -= ts->data_reg;
 
-	ts->data = kcalloc(ts->data_length, sizeof(*ts->data), 0);
+	ts->data = kcalloc(ts->data_length, sizeof(*ts->data), GFP_KERNEL);
 	if (ts->data == NULL) {
 		pr_err("%s: Failed to allocate data\n", __func__);
 		ret = -ENOMEM;
