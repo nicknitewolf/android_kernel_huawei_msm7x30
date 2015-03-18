@@ -885,6 +885,7 @@ static int synaptics_i2c_rmi4_probe(
 		if (ret) {
 			pr_err("%s: Failed to set gpio direction ret=%d\n",
 				__func__, ret);
+			gpio_free(pdata->irq_gpio);
 			goto fallback_polling;
 		}
 
@@ -893,6 +894,8 @@ static int synaptics_i2c_rmi4_probe(
 			IRQF_TRIGGER_LOW, client->name, ts) >= 0) {
 			pr_info("%s: starting in interrupt mode\n", __func__);
 			ts->use_irq = 1;
+		} else {
+			gpio_free(pdata->irq_gpio);
 		}
 	}
 
