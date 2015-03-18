@@ -815,8 +815,8 @@ static int synaptics_i2c_rmi4_probe(
 		goto err_destroy_workqueue;
 	}
 
-	ts->input_dev->name = SYNAPTICS_I2C_RMI4_NAME;
 	dev_set_drvdata(&(ts->input_dev->dev), ts);
+	ts->input_dev->name = SYNAPTICS_I2C_RMI4_NAME;
 	ts->input_dev->phys = client->name;
 
 	set_bit(EV_ABS, ts->input_dev->evbit);
@@ -826,7 +826,7 @@ static int synaptics_i2c_rmi4_probe(
 	set_bit(ABS_X, ts->input_dev->absbit);
 	set_bit(ABS_Y, ts->input_dev->absbit);
 	set_bit(KEY_NUMLOCK, ts->input_dev->keybit);
-	set_bit(INPUT_PROP_DIRECT,ts->input_dev->propbit);
+	set_bit(INPUT_PROP_DIRECT, ts->input_dev->propbit);
 
 	ret = input_register_device(ts->input_dev);
 	if (ret) {
@@ -1027,7 +1027,6 @@ struct RMI4_FDT {
 static int RMI4_read_PDT(struct i2c_client *client)
 {
 	struct synaptics_i2c_rmi4 *ts = i2c_get_clientdata(client);
-	// Read config data
 	struct RMI4_FDT temp_buf;
 	struct RMI4_FDT m_PdtF34Flash;
 	struct RMI4_FDT m_PdtF01Common;
