@@ -37,6 +37,9 @@
 
 #include <linux/synaptics_i2c_rmi4_hw.h>
 
+#define REPORTING_MODE	0x00	 /* 000: Continuous, when finger present. */
+#define SENSITIVITY	0x08
+
 typedef __u8 u4;
 typedef __u16 u12;
 
@@ -805,6 +808,28 @@ static int synaptics_i2c_rmi4_probe(
 		ret = tp_read_input_name(ts);
 		if (!ret)
 			pr_err("%s: Failed to read input name\n", __func__);
+	}
+
+	if (ts->f11_has_Sensitivity_Adjust) {
+		/* F11_2D_Ctrl14 */
+		ret = i2c_smbus_write_byte_data(ts->client,
+			fd_11.controlBase+14, SENSITIVITY);
+		if (ret) {
+			pr_warn("%s: Failed to change sensitivity ret=%d\n",
+				__func__, ret);
+			ret = 0; /* Not a fatal error. */
+		}
+	}
+
+	/* Change reporting mode.
+	 * This also disables data filtering. */
+	/* F11_2D_Ctrl0 */
+	ret = i2c_smbus_write_byte_data(ts->client,
+		fd_11.controlBase, REPORTING_MODE);
+	if (ret) {
+		pr_warn("%s: Failed to change reporting mode ret=%d\n",
+			__func__, ret);
+		ret = 0; /* Not a fatal error. */
 	}
 
 	ts->input_dev = input_allocate_device();
