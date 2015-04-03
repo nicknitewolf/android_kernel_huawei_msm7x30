@@ -50,6 +50,12 @@ void __init msm_fb_register_device(char *name, void *data);
 /* board-hw7x30-regulator.c */
 extern struct proccomm_regulator_platform_data msm7x30_proccomm_regulator_data;
 
+#if defined(CONFIG_MACH_HUAWEI_U8860)
+extern void (*wifi_status_cb)(int card_present, void *dev_id);
+extern void *wifi_status_cb_devid;
+extern int bcm_wifi_cd; /* WIFI virtual 'card detect' status */
+#endif
+
 /* Common GPIOs */
 #define GPIO_MDP_IRQ	30
 

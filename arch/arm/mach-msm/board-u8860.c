@@ -76,7 +76,6 @@
 #include "proccomm-regulator.h"
 
 #include "board-hw7x30.h"
-#include "board-u8860.h"
 #include "pm.h"
 
 #include <linux/akm8975.h>
@@ -3092,7 +3091,7 @@ out:
 #ifdef CONFIG_MMC_MSM_SDC3_SUPPORT
 void (*wifi_status_cb)(int card_present, void *dev_id) = NULL;
 void *wifi_status_cb_devid = 0;
-int u8860_wifi_cd = 0; /* WIFI virtual 'card detect' status */
+int bcm_wifi_cd = 0; /* WIFI virtual 'card detect' status */
 
 static int msm7x30_sdc3_register_status_notify(
 	void (*callback)(int card_present, void *dev_id), void *dev_id)
@@ -3107,7 +3106,7 @@ static int msm7x30_sdc3_register_status_notify(
 
 static unsigned int msm7x30_sdc3_status(struct device *dev)
 {
-	return u8860_wifi_cd;
+	return bcm_wifi_cd;
 }
 #endif
 

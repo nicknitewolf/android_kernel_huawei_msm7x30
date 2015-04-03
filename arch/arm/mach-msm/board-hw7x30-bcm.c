@@ -19,7 +19,7 @@
 #include <linux/skbuff.h>
 #include <linux/wifi_tiwlan.h>
 
-#include "board-u8860.h"
+#include "board-hw7x30.h"
 
 
 #define WLAN_STATIC_SCAN_BUF0		5
@@ -69,7 +69,7 @@ static struct msm_gpio wifi_gpios[] = {
 		"WL_PWR_ON" },
 };
 
-static void *u8860_wifi_mem_prealloc(int section, unsigned long size)
+static void *bcm_wifi_mem_prealloc(int section, unsigned long size)
 {
 	if (section == PREALLOC_WLAN_SEC_NUM)
 		return wlan_static_skb;
@@ -86,7 +86,7 @@ static void *u8860_wifi_mem_prealloc(int section, unsigned long size)
 	return wlan_mem_array[section].mem_ptr;
 }
 
-static int u8860_wifi_power(int val)
+static int bcm_wifi_power(int val)
 {
 	pr_debug("%s: val %d\n", __func__, val);
 	if (val) {
@@ -103,15 +103,15 @@ static int u8860_wifi_power(int val)
 	return 0;
 }
 
-static int u8860_wifi_reset(int val)
+static int bcm_wifi_reset(int val)
 {
 	pr_debug("%s: val %d\n", __func__, val);
 	return 0;
 }
 
-static int u8860_wifi_set_carddetect(int val)
+static int bcm_wifi_set_carddetect(int val)
 {
-	u8860_wifi_cd = val;
+	bcm_wifi_cd = val;
 	if (wifi_status_cb) {
 		wifi_status_cb(val, wifi_status_cb_devid);
 	} else
@@ -120,7 +120,7 @@ static int u8860_wifi_set_carddetect(int val)
 }
 
 extern int hwprops_get_wlanmac(uint8_t *wlanmac);
-static int u8860_wifi_get_mac_addr(unsigned char *buf)
+static int bcm_wifi_get_mac_addr(unsigned char *buf)
 {
 	int ret;
 	uint8_t mac_address[IFHWADDRLEN];
@@ -144,7 +144,7 @@ struct cntry_locales_custom {
 	int  custom_locale_rev;
 };
 
-static struct cntry_locales_custom u8860_wifi_translate_custom_table[] = {
+static struct cntry_locales_custom bcm_wifi_translate_custom_table[] = {
 /* Table should be filled out based on custom platform regulatory requirement */
 	{"",   "XV", 17},	/* Universal if Country code is unknown or empty */
 	{"IR", "XV", 17},	/* Universal if Country code is IRAN, (ISLAMIC REPUBLIC OF) */
@@ -295,20 +295,20 @@ static struct cntry_locales_custom u8860_wifi_translate_custom_table[] = {
 	{"US", "Q2", 57},
 };
 
-static void *u8860_wifi_get_country_code(char *ccode)
+static void *bcm_wifi_get_country_code(char *ccode)
 {
 	int size, i;
 	static struct cntry_locales_custom country_code;
 
-	size = ARRAY_SIZE(u8860_wifi_translate_custom_table);
+	size = ARRAY_SIZE(bcm_wifi_translate_custom_table);
 
 	if ((size == 0) || (ccode == NULL))
 		return NULL;
 
 	for (i = 0; i < size; i++) {
 		if (!strcmp(
-			ccode, u8860_wifi_translate_custom_table[i].iso_abbrev))
-			return &u8860_wifi_translate_custom_table[i];
+			ccode, bcm_wifi_translate_custom_table[i].iso_abbrev))
+			return &bcm_wifi_translate_custom_table[i];
 	}
 
 	memset(&country_code, 0, sizeof(struct cntry_locales_custom));
@@ -317,7 +317,7 @@ static void *u8860_wifi_get_country_code(char *ccode)
 	return &country_code;
 }
 
-static struct resource u8860_wifi_resources[] = {
+static struct resource bcm_wifi_resources[] = {
 	[0] = {
 		.name		= "bcmdhd_wlan_irq",
 		.start		= MSM_GPIO_TO_INT(WL_HOST_WAKE),
@@ -327,26 +327,26 @@ static struct resource u8860_wifi_resources[] = {
 	},
 };
 
-static struct wifi_platform_data u8860_wifi_control = {
-	.set_power	= u8860_wifi_power,
-	.set_reset	= u8860_wifi_reset,
-	.set_carddetect	= u8860_wifi_set_carddetect,
-	.mem_prealloc	= u8860_wifi_mem_prealloc,
-	.get_mac_addr	= u8860_wifi_get_mac_addr,
-	.get_country_code	= u8860_wifi_get_country_code,
+static struct wifi_platform_data bcm_wifi_control = {
+	.set_power	= bcm_wifi_power,
+	.set_reset	= bcm_wifi_reset,
+	.set_carddetect	= bcm_wifi_set_carddetect,
+	.mem_prealloc	= bcm_wifi_mem_prealloc,
+	.get_mac_addr	= bcm_wifi_get_mac_addr,
+	.get_country_code	= bcm_wifi_get_country_code,
 };
 
-static struct platform_device u8860_wifi_device = {
+static struct platform_device bcm_wifi_device = {
 	.name		= "bcmdhd_wlan",
 	.id		= 1,
-	.num_resources	= ARRAY_SIZE(u8860_wifi_resources),
-	.resource	= u8860_wifi_resources,
+	.num_resources	= ARRAY_SIZE(bcm_wifi_resources),
+	.resource	= bcm_wifi_resources,
 	.dev		= {
-		.platform_data = &u8860_wifi_control,
+		.platform_data = &bcm_wifi_control,
 	},
 };
 
-static int __init u8860_init_wifi_mem(void)
+static int __init bcm_init_wifi_mem(void)
 {
 	int i;
 	int j;
@@ -398,7 +398,7 @@ static int __init u8860_init_wifi_mem(void)
 	return -ENOMEM;
 }
 
-static int __init u8860_init_wifi_gpio(void)
+static int __init bcm_init_wifi_gpio(void)
 {
 	int ret;
 
@@ -417,11 +417,11 @@ static int __init u8860_init_wifi_gpio(void)
 	return 0;
 }
 
-static int __init u8860_wifi_init(void)
+static int __init bcm_wifi_init(void)
 {
-	u8860_init_wifi_gpio();
-	u8860_init_wifi_mem();
-	return platform_device_register(&u8860_wifi_device);;
+	bcm_init_wifi_gpio();
+	bcm_init_wifi_mem();
+	return platform_device_register(&bcm_wifi_device);;
 }
 
-module_init(u8860_wifi_init);
+module_init(bcm_wifi_init);
