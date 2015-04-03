@@ -1639,7 +1639,7 @@ static struct apds993x_platform_data apds993x_pdata = {
 	.als_D = 1163,
 	.ga_value = 515,
 	.default_cal = 0,
-	.irq_gpio = 89,
+	.irq_gpio = GPIO_APDS_IRQ,
 };
 #endif
 
@@ -1676,7 +1676,7 @@ static void tpa2028d1_unreg_cb(void)
 }
 
 static struct tpa2028d1_platform_data tpa2028d1_pdata = {
-	.amp_en_gpio			= 82,
+	.amp_en_gpio			= GPIO_AMP_EN,
 	.config				= {
 		.ng_enabled		= 1,
 		.atk_time		= 5,
@@ -1696,7 +1696,6 @@ static struct tpa2028d1_platform_data tpa2028d1_pdata = {
 
 #if CONFIG_TOUCHSCREEN_SYNAPTICS_I2C_RMI4_HW
 #define TS_GPIO_IRQ	148
-#define TS_GPIO_RESET	85
 
 static struct regulator *synaptics_reg = NULL;
 
@@ -1710,26 +1709,26 @@ static int synaptics_rmi4_power(bool enable)
 
 static int synaptics_rmi4_reset(void)
 {
-	int retval = gpio_request(TS_GPIO_RESET, "syn_reset_gpio");
+	int retval = gpio_request(GPIO_TS_RST, "syn_reset_gpio");
 	if (retval) {
 		pr_err("%s: Failed to get reset gpio %d. Code: %d.",
-			__func__, TS_GPIO_RESET, retval);
+			__func__, GPIO_TS_RST, retval);
 		return retval;
 	}
 
-	retval = gpio_direction_output(TS_GPIO_RESET, 1);
+	retval = gpio_direction_output(GPIO_TS_RST, 1);
 	if (retval) {
 		pr_err("%s: Failed to setup reset gpio %d. Code: %d.",
-			__func__, TS_GPIO_RESET, retval);
-		gpio_free(TS_GPIO_RESET);
+			__func__, GPIO_TS_RST, retval);
+		gpio_free(GPIO_TS_RST);
 		return retval;
 	}
 	msleep(5);
 
-	gpio_set_value(TS_GPIO_RESET, 0);
+	gpio_set_value(GPIO_TS_RST, 0);
 	msleep(10);
 
-	gpio_set_value(TS_GPIO_RESET, 1);
+	gpio_set_value(GPIO_TS_RST, 1);
 	msleep(50);
 
 	return 0;
@@ -1770,7 +1769,7 @@ static void synaptics_rmi4_exit(void)
 }
 
 static struct synaptics_i2c_rmi4_hw_platform_data synaptics_rmi4_pdata = {
-	.irq_gpio = TS_GPIO_IRQ,
+	.irq_gpio = GPIO_TS_IRQ,
 	.display_x = 480,
 	.display_y = 854,
 	.panel_x = 480,
@@ -1848,7 +1847,6 @@ static struct l3g4200d_platform_data l3g4200d_pdata = {
 #endif
 
 #ifdef CONFIG_SENSORS_AK8975
-#define AKM8975_GPIO_DRDY	132
 static int __init akm_init(void)
 {
 	int ret = 0;
@@ -1878,7 +1876,7 @@ static int __init akm_init(void)
 		return ret;
 	}
 
-	ret = gpio_request(AKM8975_GPIO_DRDY, "akm_drdy");
+	ret = gpio_request(GPIO_AKM_IRQ, "akm_drdy");
 	if (ret) {
 		pr_err("%s: Failed to request gpio ret=%d\n",
 			__func__, ret);
@@ -1890,7 +1888,7 @@ static int __init akm_init(void)
 
 static struct akm8975_platform_data akm8975_pdata = {
 	.layout = 7,
-	.gpio_DRDY = AKM8975_GPIO_DRDY,
+	.gpio_DRDY = GPIO_AKM_IRQ,
 	.gpio_RSTN = 0,
 };
 #endif
@@ -1900,7 +1898,7 @@ static struct i2c_board_info msm_i2c_board_info[] = {
 	{
 		I2C_BOARD_INFO("apds993x", 0x39),
 		.platform_data = &apds993x_pdata,
-		.irq = MSM_GPIO_TO_INT(89),
+		.irq = MSM_GPIO_TO_INT(GPIO_APDS_IRQ),
 	},
 	#endif
 	#ifdef CONFIG_STM_LIS3DH
@@ -1919,7 +1917,7 @@ static struct i2c_board_info msm_i2c_board_info[] = {
 	{
 		I2C_BOARD_INFO("synaptics_i2c_rmi4", 0x70),
 		.platform_data = &synaptics_rmi4_pdata,
-		.irq = MSM_GPIO_TO_INT(TS_GPIO_IRQ),
+		.irq = MSM_GPIO_TO_INT(GPIO_TS_IRQ),
 	},
 	#endif
 	#ifdef CONFIG_INPUT_L3G4200D
@@ -1932,7 +1930,7 @@ static struct i2c_board_info msm_i2c_board_info[] = {
 	{
 		I2C_BOARD_INFO(AKM_I2C_NAME, 0x18 >> 1),
 		.platform_data = &akm8975_pdata,
-		.irq = MSM_GPIO_TO_INT(AKM8975_GPIO_DRDY),
+		.irq = MSM_GPIO_TO_INT(GPIO_AKM_IRQ),
 	},
 	#endif
 };
@@ -2316,7 +2314,7 @@ static struct mddi_platform_data mddi_pdata = {
 
 static struct msm_panel_common_pdata mdp_pdata = {
 	.hw_revision_addr = 0xac001270,
-	.gpio = 30,
+	.gpio = GPIO_MDP_IRQ,
 	.mdp_max_clk = 192000000,
 	.mdp_rev = MDP_REV_40,
 	.mem_hid = BIT(ION_CP_WB_HEAP_ID),
@@ -2589,10 +2587,10 @@ static struct platform_device msm_bluesleep_device = {
 #endif
 
 static struct msm_gpio i2c_dcdc_gpio_config[] = {
-	{ GPIO_CFG(149, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
-		"i2c_scl" },
-	{ GPIO_CFG(150, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
-		"i2c_sda" },
+	{ GPIO_CFG(GPIO_DCDC_SCL, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL,
+		GPIO_CFG_2MA), "i2c_scl" },
+	{ GPIO_CFG(GPIO_DCDC_SDA, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL,
+		GPIO_CFG_2MA), "i2c_sda" },
 };
 
 static int i2c_gpio_hw_config(bool on)
@@ -2609,8 +2607,8 @@ static int i2c_gpio_hw_config(bool on)
 }
 
 static struct i2c_gpio_platform_data i2c_dcdc_pdata = {
-	.scl_pin = 149,
-	.sda_pin = 150,
+	.scl_pin = GPIO_DCDC_SCL,
+	.sda_pin = GPIO_DCDC_SDA,
 	.udelay = 5, /* 100 Khz */
 	.sda_is_open_drain = 1,
 	.scl_is_open_drain = 1,
