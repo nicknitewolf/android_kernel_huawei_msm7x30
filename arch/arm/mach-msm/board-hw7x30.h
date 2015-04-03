@@ -14,6 +14,39 @@
 #ifndef __ARCH_ARM_MACH_MSM_BOARD_HW7X30_H__
 #define __ARCH_ARM_MACH_MSM_BOARD_HW7X30_H__
 
+/* board-hw7x30-devices.c */
+extern struct platform_device asoc_msm_dai0;
+extern struct platform_device asoc_msm_dai1;
+extern struct platform_device asoc_msm_pcm;
+extern struct platform_device msm7x30_device_acpuclk;
+extern struct platform_device msm_adsp_device;
+extern struct platform_device msm_device_dmov;
+extern struct platform_device msm_device_gadget_peripheral;
+extern struct platform_device msm_device_i2c;
+extern struct platform_device msm_device_i2c_2;
+extern struct platform_device msm_device_otg;
+extern struct platform_device msm_device_smd;
+extern struct platform_device msm_device_ssbi7;
+extern struct platform_device msm_device_ssbi_pmic1;
+extern struct platform_device msm_device_uart2;
+extern struct platform_device msm_device_uart_dm1;
+extern struct platform_device msm_device_vidc_720p;
+extern struct platform_device msm_ebi0_thermal;
+extern struct platform_device msm_ebi1_thermal;
+extern struct platform_device *msm_footswitch_devices[];
+extern unsigned msm_num_footswitch_devices;
+extern struct platform_device msm_kgsl_2d0;
+extern struct platform_device msm_kgsl_3d0;
+extern struct platform_device msm_rotator_device;
+extern struct platform_device qup_device_i2c;
+#if defined(CONFIG_SND_MSM_MVS_DAI_SOC)
+extern struct platform_device asoc_mvs_dai0;
+extern struct platform_device asoc_mvs_dai1;
+extern struct platform_device asoc_msm_mvs;
+#endif
+
+void __init msm_fb_register_device(char *name, void *data);
+
 /* board-hw7x30-regulator.c */
 extern struct proccomm_regulator_platform_data msm7x30_proccomm_regulator_data;
 
