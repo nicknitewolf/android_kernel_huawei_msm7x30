@@ -691,6 +691,16 @@ config MACH_HUAWEI_U8800
        help
          Support for the Huawei U8800 board.
 
+config MACH_HUAWEI_U8800PRO
+       depends on ARCH_MSM7X30
+       depends on !MSM_STACKED_MEMORY
+       select MSM_HUAWEI_HWPROPS
+       select MSM_HUAWEI_RMT_OEMINFO
+       default y
+       bool "HUAWEI U8800PRO"
+       help
+         Support for the Huawei U8800PRO board.
+
 config MACH_HUAWEI_U8860
        depends on ARCH_MSM7X30
        depends on !MSM_STACKED_MEMORY

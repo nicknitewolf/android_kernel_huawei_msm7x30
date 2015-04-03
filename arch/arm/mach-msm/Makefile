@@ -102,8 +102,10 @@ ifndef CONFIG_ARCH_APQ8064
 ifndef CONFIG_ARCH_MSM8974
 ifndef CONFIG_ARCH_MSM9625
 ifndef CONFIG_MACH_HUAWEI_U8800
+ifndef CONFIG_MACH_HUAWEI_U8800PRO
 ifndef CONFIG_MACH_HUAWEI_U8860
 	obj-y += nand_partitions.o
+endif
 endif
 endif
 endif
@@ -255,6 +257,7 @@ obj-$(CONFIG_MACH_MSM8X55_FFA) += board-msm7x30.o devices-msm7x30.o gpiomux-7x30
 obj-$(CONFIG_MACH_MSM8X55_SVLTE_FFA) += board-msm7x30.o devices-msm7x30.o gpiomux-7x30.o
 obj-$(CONFIG_MACH_MSM8X55_SVLTE_SURF) += board-msm7x30.o devices-msm7x30.o gpiomux-7x30.o
 obj-$(CONFIG_MACH_HUAWEI_U8800) += board-u8800.o board-hw7x30-devices.o board-hw7x30-gpiomux.o
+obj-$(CONFIG_MACH_HUAWEI_U8800PRO) += board-u8800pro.o board-hw7x30-devices.o board-hw7x30-gpiomux.o board-hw7x30-bcm.o
 obj-$(CONFIG_MACH_HUAWEI_U8860) += board-u8860.o board-hw7x30-devices.o board-hw7x30-gpiomux.o board-hw7x30-bcm.o
 obj-$(CONFIG_ARCH_MSM7X30) += memory_topology.o clock-local.o clock-7x30.o acpuclock-7x30.o clock-pll.o
 obj-$(CONFIG_MACH_MSM7X25_SURF) += board-msm7x27.o devices-msm7x25.o
@@ -372,6 +375,7 @@ obj-$(CONFIG_MACH_MSM8X55_FFA) += board-msm7x30-regulator.o
 obj-$(CONFIG_MACH_MSM8X55_SVLTE_FFA) += board-msm7x30-regulator.o
 obj-$(CONFIG_MACH_MSM8X55_SVLTE_SURF) += board-msm7x30-regulator.o
 obj-$(CONFIG_MACH_HUAWEI_U8800) += board-hw7x30-regulator.o
+obj-$(CONFIG_MACH_HUAWEI_U8800PRO) += board-hw7x30-regulator.o
 obj-$(CONFIG_MACH_HUAWEI_U8860) += board-hw7x30-regulator.o
 obj-$(CONFIG_ARCH_MSM7X27A) += board-msm7x27a-regulator.o
 endif

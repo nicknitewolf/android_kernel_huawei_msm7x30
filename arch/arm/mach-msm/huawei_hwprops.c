@@ -147,7 +147,7 @@ static char *replace_str(char *str, char *orig, char *rep)
 	return buffer;
 }
 
-#if defined(CONFIG_MACH_HUAWEI_U8800)
+#if defined(CONFIG_MACH_HUAWEI_U8800) || defined(CONFIG_MACH_HUAWEI_U8800PRO)
 #define ATAG_CHARGE_FLAG  0x4d534D77
 #elif defined(CONFIG_MACH_HUAWEI_U8860)
 #define ATAG_CHARGE_FLAG  0x4d534D78
