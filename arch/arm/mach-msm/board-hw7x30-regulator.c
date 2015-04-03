@@ -11,7 +11,9 @@
  * GNU General Public License for more details.
  */
 
-#include "board-u8860.h"
+#include "proccomm-regulator.h"
+
+#include "board-hw7x30.h"
 
 #define PCOM_VREG_CONSUMERS(name) \
 	static struct regulator_consumer_supply __pcom_vreg_supply_##name[]
@@ -173,6 +175,7 @@ PCOM_VREG_CONSUMERS(ldo10) = {
 	REGULATOR_SUPPLY("gp4",		NULL),
 	REGULATOR_SUPPLY("vdd",		"0-0018"),
 	REGULATOR_SUPPLY("vdd",		"0-0039"),
+	REGULATOR_SUPPLY("vdd_ana",	"0-004a"),
 };
 
 PCOM_VREG_CONSUMERS(ldo11) = {

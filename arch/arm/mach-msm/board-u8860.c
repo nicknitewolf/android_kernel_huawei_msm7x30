@@ -74,7 +74,9 @@
 #include <mach/qdsp5v2/mi2s.h>
 #include <mach/qdsp5v2/audio_dev_ctl.h>
 #include "smd_private.h"
+#include "proccomm-regulator.h"
 
+#include "board-hw7x30.h"
 #include "board-u8860.h"
 #include "pm.h"
 

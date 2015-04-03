@@ -14,11 +14,6 @@
 #ifndef __ARCH_ARM_MACH_MSM_BOARD_U8860_H__
 #define __ARCH_ARM_MACH_MSM_BOARD_U8860_H__
 
-#include "proccomm-regulator.h"
-
-/* board-u8860-regulator.c */
-extern struct proccomm_regulator_platform_data msm7x30_proccomm_regulator_data;
-
 /* board-u8860.c */
 extern void (*wifi_status_cb)(int card_present, void *dev_id);
 extern void *wifi_status_cb_devid;

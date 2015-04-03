@@ -11,12 +11,10 @@
  * GNU General Public License for more details.
  */
 
-#ifndef __ARCH_ARM_MACH_MSM_BOARD_U8800_H__
-#define __ARCH_ARM_MACH_MSM_BOARD_U8800_H__
+#ifndef __ARCH_ARM_MACH_MSM_BOARD_HW7X30_H__
+#define __ARCH_ARM_MACH_MSM_BOARD_HW7X30_H__
 
-#include "proccomm-regulator.h"
-
-/* board-u8800-regulator.c */
+/* board-hw7x30-regulator.c */
 extern struct proccomm_regulator_platform_data msm7x30_proccomm_regulator_data;
 
-#endif
+#endif /* __ARCH_ARM_MACH_MSM_BOARD_HW7X30_H__ */

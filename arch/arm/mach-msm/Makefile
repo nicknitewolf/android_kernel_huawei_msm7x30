@@ -371,8 +371,8 @@ obj-$(CONFIG_MACH_MSM8X55_SURF) += board-msm7x30-regulator.o
 obj-$(CONFIG_MACH_MSM8X55_FFA) += board-msm7x30-regulator.o
 obj-$(CONFIG_MACH_MSM8X55_SVLTE_FFA) += board-msm7x30-regulator.o
 obj-$(CONFIG_MACH_MSM8X55_SVLTE_SURF) += board-msm7x30-regulator.o
-obj-$(CONFIG_MACH_HUAWEI_U8800) += board-u8800-regulator.o
-obj-$(CONFIG_MACH_HUAWEI_U8860) += board-u8860-regulator.o
+obj-$(CONFIG_MACH_HUAWEI_U8800) += board-hw7x30-regulator.o
+obj-$(CONFIG_MACH_HUAWEI_U8860) += board-hw7x30-regulator.o
 obj-$(CONFIG_ARCH_MSM7X27A) += board-msm7x27a-regulator.o
 endif
 
