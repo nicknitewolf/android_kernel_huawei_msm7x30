@@ -411,7 +411,7 @@ static void aps_12d_input_light_work_func(struct work_struct *work)
 
 	adc_count = aps_12d_adc_count(data->client);
 	if (adc_count < 0)
-		goto work_end;
+		goto reschedule;
 
 	/* Check for sensor enable before returning new data. */
 	if (!data->sensors[APS_12D_SENSOR_LIGHT].enabled)
@@ -420,6 +420,7 @@ static void aps_12d_input_light_work_func(struct work_struct *work)
 	/* Second, report the data. */
 	aps_12d_report(data, APS_12D_SENSOR_LIGHT, adc_count);
 
+reschedule:
 	/* Finally, reschedule. */
 	aps_12d_schedule(data, &data->sensors[APS_12D_SENSOR_LIGHT]);
 
@@ -445,7 +446,7 @@ static void aps_12d_input_prox_work_func(struct work_struct *work)
 
 	surround_adc = aps_12d_adc_count(data->client);
 	if (surround_adc < 0)
-		goto work_end;
+		goto reschedule;
 
 	/* Second, do the proximity IR. */
 	aps_12d_write_proximity(data, false);
@@ -454,7 +455,7 @@ static void aps_12d_input_prox_work_func(struct work_struct *work)
 
 	proximity_adc = aps_12d_adc_count(data->client);
 	if (proximity_adc < 0)
-		goto work_end;
+		goto reschedule;
 
 	/* Check for sensor enable before returning new data. */
 	if (!data->sensors[APS_12D_SENSOR_PROXIMITY].enabled)
@@ -466,6 +467,7 @@ static void aps_12d_input_prox_work_func(struct work_struct *work)
 	/* Fourth, report the data. */
 	aps_12d_report(data, APS_12D_SENSOR_PROXIMITY, final_adc);
 
+reschedule:
 	/* Finally, reschedule. */
 	aps_12d_schedule(data, &data->sensors[APS_12D_SENSOR_PROXIMITY]);
 
