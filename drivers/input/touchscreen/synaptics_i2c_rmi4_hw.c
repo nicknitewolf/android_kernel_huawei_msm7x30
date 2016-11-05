@@ -37,7 +37,8 @@
 
 #include <linux/synaptics_i2c_rmi4_hw.h>
 
-#define REPORTING_MODE	0x00	 /* 000: Continuous, when finger present. */
+#define REPORTING_MODE	0x001	/* 001: Reduced reporting mode. */
+#define DEFAULT_REP_SENS 4		/* Default delta between reports. */
 #define SENSITIVITY	0x08
 
 typedef __u8 u4;
@@ -821,13 +822,24 @@ static int synaptics_i2c_rmi4_probe(
 		}
 	}
 
-	/* Change reporting mode.
-	 * This also disables data filtering. */
+	/* Change reporting mode. */
 	/* F11_2D_Ctrl0 */
 	ret = i2c_smbus_write_byte_data(ts->client,
 		fd_11.controlBase, REPORTING_MODE);
 	if (ret) {
 		pr_warn("%s: Failed to change reporting mode ret=%d\n",
+			__func__, ret);
+		ret = 0; /* Not a fatal error. */
+	}
+
+	/* Change reporting sensitivity. */
+	/* F11_2D_Ctrl2, F11_2D_Ctrl3 */
+	ret = i2c_smbus_write_byte_data(ts->client,
+		fd_11.controlBase+2, DEFAULT_REP_SENS);
+	ret |= i2c_smbus_write_byte_data(ts->client,
+		fd_11.controlBase+3, DEFAULT_REP_SENS);
+	if (ret) {
+		pr_warn("%s: Failed to change reporting sensitivity ret=%d\n",
 			__func__, ret);
 		ret = 0; /* Not a fatal error. */
 	}
