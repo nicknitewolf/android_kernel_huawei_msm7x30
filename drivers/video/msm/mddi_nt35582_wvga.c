@@ -154,7 +154,10 @@ static int __init mddi_nt35582_wvga_init(void)
 	pinfo->mddi.is_type1 = TRUE;
 	pinfo->wait_cycle = 0;
 	pinfo->bpp = 16;
-	pinfo->lcd.refx100 = 5357;
+	pinfo->lcd.refx100 = 5400;
+	pinfo->lcd.v_back_porch = 6;
+	pinfo->lcd.v_front_porch = 0;
+	pinfo->lcd.v_pulse_width = 0;
 	pinfo->lcd.rev = 1;
 	pinfo->lcd.vsync_enable = TRUE;
 	pinfo->lcd.hw_vsync_mode = TRUE;
