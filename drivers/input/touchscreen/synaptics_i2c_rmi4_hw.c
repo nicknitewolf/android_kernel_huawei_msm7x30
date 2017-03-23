@@ -4,7 +4,7 @@
  * Copyright (C) 2007 Google, Inc.
  * Copyright (C) 2008 Texas Instrument Inc.
  * Copyright (C) 2009 Synaptics, Inc.
- * Copyright (C) 2015 Rudolf Tammekivi
+ * Copyright (C) 2017 Rudolf Tammekivi
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -24,6 +24,7 @@
 #include <linux/gpio.h>
 #include <linux/i2c.h>
 #include <linux/input.h>
+#include <linux/input/mt.h>
 #include <linux/interrupt.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -440,7 +441,7 @@ static void synaptics_i2c_rmi4_work_func(struct work_struct *work)
 	u4 wy = 0;
 	u8 z = 0 ;
 	__u8 prev_state = 0;
-	u8 finger_pressed_count = 0;
+	int finger_num = 0;
 	__u8 *interrupt = NULL;
 	struct synaptics_i2c_rmi4 *ts =
 		container_of(work, struct synaptics_i2c_rmi4, work);
@@ -487,26 +488,24 @@ static void synaptics_i2c_rmi4_work_func(struct work_struct *work)
 				/* nothing to report */
 				continue;
 			}
-			input_report_abs(ts->input_dev, ABS_MT_PRESSURE, z);
-			input_report_abs(ts->input_dev, ABS_MT_TOUCH_MAJOR,
-				max(wx, wy));
-			input_report_abs(ts->input_dev, ABS_MT_TOUCH_MINOR,
-				min(wx, wy));
-			input_report_abs(ts->input_dev, ABS_MT_ORIENTATION,
-				(wx > wy ? 1 : 0));
-			input_report_abs(ts->input_dev, ABS_MT_POSITION_X, x);
-			input_report_abs(ts->input_dev, ABS_MT_POSITION_Y, y);
-			input_report_abs(ts->input_dev, ABS_MT_TRACKING_ID, f);
-
-			input_mt_sync(ts->input_dev);
-
+			input_mt_slot(ts->input_dev, f);
+			input_mt_report_slot_state(ts->input_dev,
+				MT_TOOL_FINGER, finger_status);
+			if (finger_status) {
+				input_report_abs(ts->input_dev,
+					ABS_MT_PRESSURE, z);
+				input_report_abs(ts->input_dev,
+					ABS_MT_TOUCH_MAJOR, max(wx, wy));
+				input_report_abs(ts->input_dev,
+					ABS_MT_POSITION_X, x);
+				input_report_abs(ts->input_dev,
+					ABS_MT_POSITION_Y, y);
+				finger_num++;
+			}
 			ts->f11_fingers[f].status = finger_status;
-			if (finger_status > 0)
-				finger_pressed_count++;
 		}
 		/* Report if there is any finger on the TP */
-		input_report_key(ts->input_dev, BTN_TOUCH,
-			finger_pressed_count);
+		input_report_key(ts->input_dev, BTN_TOUCH, finger_num);
 
 		/* set f to offset after all absolute data */
 		f = (f + 3) / 4 + f * 5;
